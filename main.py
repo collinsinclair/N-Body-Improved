@@ -1,16 +1,32 @@
-import datetime
-import os
-import random
-import sys
-from time import sleep
 
-import matplotlib.animation as ani
-import matplotlib.pyplot as plt
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-from tqdm import tqdm
+try:
+    import datetime
+    import os
+    import sys
+    from time import sleep
 
-from src import forces, leapfrog, systems
+    import matplotlib.animation as ani
+    import matplotlib.colors as colors
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+    from tqdm import tqdm
+
+    from src import leapfrog, systems
+except ImportError:
+    print("""
+    An error occurred while importing one of the required modules.
+    Please install required modules with the following command:
+    pip3 install -r requirements.txt
+    """)
+    sys.exit(1)
+
+
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
 
 
 def makeVideosDir():
@@ -261,23 +277,64 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         z_min = (x_min + y_min) / 2
         z_max = (x_max + y_max) / 2
         for i in tqdm(range(len(timeInDays))):
-            ax.clear()
-            ax.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
-            ax.set_zlabel("z")
-            ax.set_xlim(x_min, x_max)
-            ax.set_ylim(y_min, y_max)
-            ax.set_zlim(z_min, z_max)
-            # size the particles by mass (1D array) but no particle is smaller than 1 or bigger than 100
-            sizes = np.clip(masses / max(masses) * 200, 5, 200)
-            # color the particles by their z velocity
-            p = ax.scatter(positions[:, 0, i], positions[:, 1, i],
-                           positions[:, 2, i], s=sizes, c=velocities[:, 2, i], cmap='viridis')
-            # color bar
-            if i == 0:
-                cbar = fig.colorbar(p)
-                cbar.set_label('z velocity')
+            isometric.clear()
+            isometric.set_xlabel("x")
+            isometric.set_ylabel("y")
+            isometric.set_zlabel("z")
+            isometric.set_xlim(lb, ub)
+            isometric.set_ylim(lb, ub)
+            isometric.set_zlim(lb, ub)
+            isometric.grid(False)
+            isometric.facecolor = 'black'
+            isometric.set_xticks([])
+            isometric.set_yticks([])
+            isometric.set_zticks([])
+            isometric.xaxis.pane.fill = False
+            isometric.yaxis.pane.fill = False
+            isometric.zaxis.pane.fill = False
+            isometric.xaxis.pane.set_edgecolor('k')
+            isometric.yaxis.pane.set_edgecolor('k')
+            isometric.zaxis.pane.set_edgecolor('k')
+            sizes = np.clip(masses / max(masses) * 300, 10, 300)
+            isometric.scatter(positions[:, 0, i], positions[:, 1, i],
+                              positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+
+            xtra = 0.5
+            xz_plane.clear()
+            xz_plane.set_xlabel("x")
+            xz_plane.set_ylabel("z")
+            xz_plane.set_xlim(lb, ub)
+            xz_plane.set_ylim(lb, ub)
+            xz_plane.grid(False)
+            xz_plane.facecolor = 'black'
+            xz_plane.set_xticks([])
+            xz_plane.set_yticks([])
+            xz_plane.scatter(positions[:, 0, i], positions[:, 2, i],
+                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+
+            xy_plane.clear()
+            xy_plane.set_xlabel("x")
+            xy_plane.set_ylabel("y")
+            xy_plane.set_xlim(lb, ub)
+            xy_plane.set_ylim(lb, ub)
+            xy_plane.grid(False)
+            xy_plane.facecolor = 'black'
+            xy_plane.set_xticks([])
+            xy_plane.set_yticks([])
+            xy_plane.scatter(positions[:, 0, i], positions[:, 1, i],
+                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+
+            ke_2d.clear()
+            for j in range(len(absVelocities)):
+                p = ke_2d.plot(timeInDays[:i], kineticEnergy[j, :i],
+                               c=new_cmap(normed_distances[j, i]))
+                ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
+                ke_2d.set_xlabel("Time")
+                ke_2d.set_ylabel("Kinetic Energy")
+                ke_2d.set_xticks([])
+                ke_2d.set_yticks([])
+            fig.suptitle(f'{systemName} at {timeInDays[i]:.1f} Days')
+            fig.tight_layout()
             wri.grab_frame()
         # close the writer
         wri.finish()
