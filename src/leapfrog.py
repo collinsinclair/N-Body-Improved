@@ -241,7 +241,7 @@ def animate(masses, positions, velocities, duration, dt, name):
             # if 5 seconds have passed, print a space fact
             if i == 0:
                 lastLineRead = 0
-            if (datetime.datetime.now() - last).seconds > 5:
+            if (datetime.datetime.now() - last).seconds > 10:
                 # if the line has not been read yet, read it
                 if lastLineRead < len(lines):
                     print(lines[lastLineRead])
