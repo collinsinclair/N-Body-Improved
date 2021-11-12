@@ -300,9 +300,9 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
     fig = plt.figure(figsize=(30, 10))
-    isometric = fig.add_subplot(131, projection='3d')
-    ke_2d = fig.add_subplot(393)
-    xz_plane = fig.add_subplot(132)
+    isometric = fig.add_subplot(132, projection='3d')
+    ke_2d = fig.add_subplot(396)
+    xz_plane = fig.add_subplot(131)
     xy_plane = fig.add_subplot(133)
 
     filename = './videos/' + systemName + '_' + \
@@ -316,6 +316,10 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         else:
             ub = np.max(positions[:, 0:2, :])
             lb = np.min(positions[:, 0:2, :])
+        if ub > lb:  
+            lb = -ub
+        else:
+            ub = -lb
         distances = np.sqrt(
             positions[:, 0, :]**2 + positions[:, 1, :]**2 + positions[:, 2, :]**2)
         normed_distances = distances / np.max(distances)
