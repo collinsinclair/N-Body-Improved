@@ -121,7 +121,7 @@ Enter a 1 or a 2: """)
 
 
 def faketypeVelScatter(default=0):
-    choice = input(f"""
+    faketype(f"""
 VELOCITY SCATTER
 The velocity scatter specifies the width of the Gaussian distribution from which to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will be.""")
     choice = input(f"""Would you like to
@@ -179,7 +179,8 @@ MAXIMUM MASS
 The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
     choice = input(f"""Would you like to
     (1) use the default ({default}) or
-    (2) enter your own?""")
+    (2) enter your own?
+Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
         faketype("Invalid selection")
         choice = input(
@@ -294,10 +295,12 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
     dt = (timesInSecs[1] - timesInSecs[0]) / (24 * 3600)
     fps_ = round(365 / (oneyear*dt))
     wri = ani.FFMpegWriter(fps=fps_)
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111, projection='3d')
+    fig = plt.figure(figsize=(30, 10))
+    ax = fig.add_subplot(131, projection='3d')
     # create an axes below the 3d project for the velocities of the particles
-    ax2 = fig.add_subplot(333)
+    ax2 = fig.add_subplot(393)
+    ax3 = fig.add_subplot(132, projection='3d')
+    ax4 = fig.add_subplot(133, projection='3d')
     # create a filename with system name, date, and time
     filename = './videos/' + systemName + '_' + \
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
@@ -314,8 +317,13 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         # x_max += 0.1 * x_range
         # y_min -= 0.1 * y_range
         # y_max += 0.1 * y_range
-        ub = np.quantile(positions[:, 0:2, :], 0.9)
-        lb = np.quantile(positions[:, 0:2, :], 0.1)
+        # if there are more than 3 particles
+        if len(masses) > 3:
+            ub = np.quantile(positions[:, 0:2, :], 0.9)
+            lb = np.quantile(positions[:, 0:2, :], 0.1)
+        else:
+            ub = np.max(positions[:, 0:2, :])
+            lb = np.min(positions[:, 0:2, :])
         # calculate the z limits for the plot as the average of the x and y limits
         # z_min = (x_min + y_min) / 2
         # z_max = (x_max + y_max) / 2
@@ -351,7 +359,7 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         # normedDistancesFromCOG = distancesFromCOG / np.max(distancesFromCOG)
         for i in tqdm(range(len(timeInDays))):
             ax.clear()
-            ax.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
+            # ax.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
             ax.set_xlabel("x")
             ax.set_ylabel("y")
             ax.set_zlabel("z")
@@ -375,6 +383,60 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
             # give each particle a different color based on its distance from the origin
             sp = ax.scatter(positions[:, 0, i], positions[:, 1, i],
                             positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+
+            ax3.clear()
+            # ax3.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
+            ax3.set_xlabel("x")
+            ax3.set_ylabel("y")
+            ax3.set_zlabel("z")
+            ax3.set_xlim(lb, ub)
+            ax3.set_ylim(lb, ub)
+            ax3.set_zlim(lb, ub)
+            # Hide grid lines
+            ax3.grid(False)
+            ax3.facecolor = 'black'
+            # Hide axes ticks
+            ax3.set_xticks([])
+            ax3.set_yticks([])
+            ax3.set_zticks([])
+            ax3.xaxis.pane.fill = False
+            ax3.yaxis.pane.fill = False
+            ax3.zaxis.pane.fill = False
+            ax3.xaxis.pane.set_edgecolor('k')
+            ax3.yaxis.pane.set_edgecolor('k')
+            ax3.zaxis.pane.set_edgecolor('k')
+            ax3.scatter(positions[:, 0, i], positions[:, 1, i],
+                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+            # view x-z plane
+            ax3.view_init(elev=0, azim=90)
+            # give each particle a different color based on its distance from the origin
+
+            ax4.clear()
+            # ax4.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
+            ax4.set_xlabel("x")
+            ax4.set_ylabel("y")
+            ax4.set_zlabel("z")
+            ax4.set_xlim(lb, ub)
+            ax4.set_ylim(lb, ub)
+            ax4.set_zlim(lb, ub)
+            # Hide grid lines
+            ax4.grid(False)
+            ax4.facecolor = 'black'
+            # Hide axes ticks
+            ax4.set_xticks([])
+            ax4.set_yticks([])
+            ax4.set_zticks([])
+            ax4.xaxis.pane.fill = False
+            ax4.yaxis.pane.fill = False
+            ax4.zaxis.pane.fill = False
+            ax4.xaxis.pane.set_edgecolor('k')
+            ax4.yaxis.pane.set_edgecolor('k')
+            ax4.zaxis.pane.set_edgecolor('k')
+            ax4.scatter(positions[:, 0, i], positions[:, 1, i],
+                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+            # view x-y plane
+            ax4.view_init(elev=90, azim=90)
+
             ax2.clear()
             # line plot of each particle's velocity as a function of time colored by mass
             for j in range(len(absVelocities)):
@@ -388,6 +450,8 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
             # if i == 0:
             #     cb = fig.colorbar(sp, ax=ax2)
             #     cb.set_label("Distance from Barycenter")
+            fig.suptitle(f'{systemName} at {timeInDays[i]:.1f} Days')
+            fig.tight_layout()
             wri.grab_frame()
         # close the writer
         wri.finish()
