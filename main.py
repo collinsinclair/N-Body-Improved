@@ -115,9 +115,9 @@ Enter a 1 or 2: """)
                          ) * (365 * 60 * 60 * 24)
         timestep = float(input("Enter a time step in days: ")) * (60 * 60 * 24)
     if chooseN:
-        nChoice = input(f"""
-NUMBER OF PARTICLES
-Would you like to
+        faketype(f"""
+NUMBER OF PARTICLES""")
+        Choice = input(f"""Would you like to
     (1) use the default number of particles ({defaultN}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
