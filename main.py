@@ -1,30 +1,24 @@
+try:
+    import datetime
+    import os
+    import sys
+    from time import sleep
 
-def install_dependencies():
-    # check that dependencies are installed
-    try:
-        import datetime
-        import os
-        import random
-        import sys
-        from time import sleep
+    import matplotlib.animation as ani
+    import matplotlib.colors as colors
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+    from tqdm import tqdm
 
-        import matplotlib.animation as ani
-        import matplotlib.colors as colors
-        import matplotlib.pyplot as plt
-        import numpy as np
-        from mpl_toolkits.mplot3d import Axes3D
-        from tqdm import tqdm
-
-        from src import forces, leapfrog, systems
-    except ImportError:
-        permission = input(
-            "Permission to install requirements with pip3? Requirements listed in requirements.txt. (y/n)")
-        while permission != "y" and permission != "n":
-            permission = input("Invalid selection. Enter y or n: ")
-        if permission == "y":
-            os.system("pip3 install -r requirements.txt")
-            print("Requirements installed.")
-            install_dependencies()
+    from src import leapfrog, systems
+except ImportError:
+    print("""
+    An error occurred while importing one of the required modules.
+    Please install required modules with the following command:
+    pip3 install -r requirements.txt
+    """)
+    sys.exit(1)
 
 
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
@@ -411,7 +405,6 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
 
 
 def main():
-    install_dependencies()
     makeVideosDir()
     faketypeIntro()
     systems = ["Sun-Earth", "Sun-Earth-Moon", "Kepler16", "Random Cube",
