@@ -154,12 +154,9 @@ def animate(masses, positions, velocities, duration, dt, name):
         cmap = plt.get_cmap('plasma')
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
 
-        x_min_m = np.min(positions[:, 0])
-        x_max_m = np.max(positions[:, 0])
-        y_min_m = np.min(positions[:, 1])
-        y_max_m = np.max(positions[:, 1])
-        z_min_m = np.min(positions[:, 2])
-        z_max_m = np.max(positions[:, 2])
+        # calculate the maximum distance of any of the particles from the origin
+        max_distance_prev = max(
+            [np.abs(np.max(distances)), np.abs(np.min(distances))])
 
         for i in tqdm(range(len(timeInDays))):
             positions, velocities = updateParticles(
@@ -173,22 +170,9 @@ def animate(masses, positions, velocities, duration, dt, name):
                 masses, positions, velocities)
 
             # this whole business keeps the axes on the same scale and (0,0,0) in the center
-            x_min_m = min(np.min(positions[:, 0]), x_min_m)
-            x_max_m = max(np.max(positions[:, 0]), x_max_m)
-            y_min_m = min(np.min(positions[:, 1]), y_min_m)
-            y_max_m = max(np.max(positions[:, 1]), y_max_m)
-            z_max_m = max(np.max(positions[:, 2]), z_max_m)
-            z_min_m = min(np.min(positions[:, 2]), z_min_m)
-            x_range = x_max_m - x_min_m
-            y_range = y_max_m - y_min_m
-            z_range = z_max_m - z_min_m
-            x_min = x_min_m - 0.1 * x_range
-            x_max = x_max_m + 0.1 * x_range
-            y_min = y_min_m - 0.1 * y_range
-            y_max = y_max_m + 0.1 * y_range
-            z_min = z_min_m - 0.1 * z_range
-            z_max = z_max_m + 0.1 * z_range
-            bound = np.abs(max([x_min, x_max, y_min, y_max, z_min, z_max]))
+            bound = max([np.abs(np.max(distances)), np.abs(
+                np.min(distances)), max_distance_prev])
+            bound *= 1.1  # add a little padding
 
             isometric.clear()
             isometric.set_xlabel("x")
