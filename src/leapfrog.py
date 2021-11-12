@@ -146,19 +146,18 @@ def animate(masses, positions, velocities, duration, dt, name):
 
     with wri.saving(fig, filename, 100):
         faketype("Generating video...")
-        
-        distances = np.empty((nParticles, nDimensions, len(timesInSecs)))
-        np.append(distances, 1)
+
+        # calculate the distance of each particle to the origin
+        distances = np.array([forces.magnitude(positions[i])
+                             for i in range(nParticles)])
         normed_distances = distances / np.max(distances)
-        
-        kineticEnergy = np.empty((nParticles, nDimensions, len(timesInSecs)))
-        absVelocities = np.sqrt(
-            velocities[:, 0]**2 + velocities[:, 1]**2 + velocities[:, 2]**2)
-        np.append(kineticEnergy, absVelocities)
-        
+
+        # calculate the KE of each particle
+        KEs = np.empty((nParticles, len(timesInSecs)))
+
         cmap = plt.get_cmap('plasma')
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
-        
+
         x_min_m = np.min(positions[:, 0])
         x_max_m = np.max(positions[:, 0])
         y_min_m = np.min(positions[:, 1])
@@ -168,14 +167,12 @@ def animate(masses, positions, velocities, duration, dt, name):
             positions, velocities = updateParticles(
                 masses, positions, velocities, dt)
 
-            distances = np.empty((nParticles, nDimensions, len(timesInSecs)))
-            dist = np.sqrt(positions[:, 0]**2 + positions[:, 1]**2 + positions[:, 2]**2)
-            np.append(distances, dist)
+            distances = np.array([forces.magnitude(positions[i])
+                                  for i in range(nParticles)])
             normed_distances = distances / np.max(distances)
 
-            absVelocities = np.sqrt(
-                velocities[:, 0]**2 + velocities[:, 1]**2 + velocities[:, 2]**2)
-            np.append(kineticEnergy, absVelocities)
+            # add a new ke to the list for each time step
+            KEs[:][i] = calculateKEs(masses, positions, velocities) #TODO fix me please
 
             # ----- can these be made cleaner?
             x_min_m = min(np.min(positions[:, 0]), x_min_m)
@@ -240,8 +237,8 @@ def animate(masses, positions, velocities, duration, dt, name):
                              s=sizes, c=normed_distances, cmap=new_cmap)
 
             ke_2d.clear()
-            for j in range(len(absVelocities)):
-                p = ke_2d.plot(timeInDays[:i], kineticEnergy[j, :i],
+            for j in range(KEs.shape[0]):
+                ke_2d.plot(timeInDays[:i], KEs[j, :i],
                                c=new_cmap(normed_distances[j, i]))
                 ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
                 ke_2d.set_xlabel("Time")
