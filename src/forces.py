@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def rescale(vectors, magnitudes):
+    return vectors
+    n = len(magnitudes)
+    for i in range(n):
+        omag = magnitude(vectors[i])
+        #print(magnitudes[i]/omag)
+        vectors[i] = vectors[i]*magnitudes[i]/omag
+    return vectors
+
 def forceMagnitude(mi, mj, sep):
     """
     Compute magnitude of gravitational force between two particles.
