@@ -167,12 +167,15 @@ def animate(masses, positions, velocities, duration, dt, name):
             positions, velocities = updateParticles(
                 masses, positions, velocities, dt)
 
-            distances = np.array([forces.magnitude(positions[i])
-                                  for i in range(nParticles)])
+            distances = np.array([forces.magnitude(positions[k])
+                                  for k in range(nParticles)])
             normed_distances = distances / np.max(distances)
 
+            particledistances = np.array([[forces.magnitude(positions[j] - positions[k]) for j in range(nParticles)] for k in range(nParticles)])
+            normed_particledistances = particledistances / np.max(particledistances)
+
             # add a new ke to the list for each time step
-            KEs[:][i] = calculateKEs(masses, positions, velocities) #TODO fix me please
+            KEs[:, i] = calculateKEs(masses, positions, velocities) #TODO fix me please
 
             # ----- can these be made cleaner?
             x_min_m = min(np.min(positions[:, 0]), x_min_m)
@@ -210,7 +213,7 @@ def animate(masses, positions, velocities, duration, dt, name):
             isometric.zaxis.pane.set_edgecolor('k')
             sizes = np.clip(masses / max(masses) * 300, 10, 300)
             isometric.scatter(positions[:, 0], positions[:, 1],
-                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)
+                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
             xz_plane.clear()
             xz_plane.set_xlabel("x")
@@ -222,7 +225,7 @@ def animate(masses, positions, velocities, duration, dt, name):
             xz_plane.set_xticks([])
             xz_plane.set_yticks([])
             xz_plane.scatter(positions[:, 0], positions[:, 2],
-                             s=sizes, c=normed_distances, cmap=new_cmap)
+                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
             xy_plane.clear()
             xy_plane.set_xlabel("x")
@@ -234,12 +237,12 @@ def animate(masses, positions, velocities, duration, dt, name):
             xy_plane.set_xticks([])
             xy_plane.set_yticks([])
             xy_plane.scatter(positions[:, 0], positions[:, 1],
-                             s=sizes, c=normed_distances, cmap=new_cmap)
+                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
             ke_2d.clear()
             for j in range(KEs.shape[0]):
                 ke_2d.plot(timeInDays[:i], KEs[j, :i],
-                               c=new_cmap(normed_distances[j, i]))
+                               c=cmap(normed_distances[j]))
                 ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
                 ke_2d.set_xlabel("Time")
                 ke_2d.set_ylabel("Kinetic Energy")
