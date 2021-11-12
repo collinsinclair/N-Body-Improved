@@ -65,9 +65,9 @@ def updateParticles(masses, positions, velocities, dt):
     # calculate the ending velocity
     endingVelocities = (startingVelocities +
                         0.5*(endingAccelerations + startingAccelerations)*dt)
-    endingKEs = -calculatePEs(masses, endingPositions, endingVelocities) + calculatePEs(masses, startingPositions, startingVelocities) + calculateKEs(masses, startingPositions, startingVelocities)
-    endingVmags = (2*endingKEs/np.array(masses))**0.5
-    endingVelocities = forces.rescale(endingVelocities, endingVmags)
+    #endingKEs = -calculatePEs(masses, endingPositions, endingVelocities) + calculatePEs(masses, startingPositions, startingVelocities) + calculateKEs(masses, startingPositions, startingVelocities)
+    #endingVmags = (2*endingKEs/np.array(masses))**0.5
+    #endingVelocities = forces.rescale(endingVelocities, endingVmags)
 
     return endingPositions, endingVelocities
 
