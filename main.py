@@ -358,6 +358,7 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
             isometric.scatter(positions[:, 0, i], positions[:, 1, i],
                               positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
 
+            xtra = 0.5
             xz_plane.clear()
             xz_plane.set_xlabel("x")
             xz_plane.set_ylabel("z")
