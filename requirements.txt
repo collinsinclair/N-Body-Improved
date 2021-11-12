@@ -1,4 +1,4 @@
 matplotlib
-mumpy
+numpy
 mpl_toolkits
 tqdm
