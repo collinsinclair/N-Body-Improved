@@ -1,4 +1,3 @@
-
 try:
     import datetime
     import os
@@ -44,7 +43,7 @@ def faketype(words, speed=0.001, newline=True):
     return ""
 
 
-def printIntro():
+def faketypeIntro():
     # clear the screen
     os.system('cls' if os.name == 'nt' else 'clear')
     # roll the text onto the screen as if it's being typed by someone
@@ -63,8 +62,8 @@ def printIntro():
     input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder that was created in the same folder you ran this program in: {}.".format(cwd), newline=False))
 
 
-def printSystemMenu():
-    print("--------------------")
+def faketypeSystemMenu():
+    faketype("--------------------")
     faketype("1. Sun-Earth System", 0.001)
     faketype("2. Sun-Earth-Moon System", 0.001)
     faketype("3. Kepler-16A Circumbinary Planet System", 0.001)
@@ -89,30 +88,36 @@ def printSystemMenu():
         """9. Tiny Cluster
     - initial conditions for a (very) cartoon model
     of stellar cluster""", 0.001)
-    print("--------------------")
+    faketype("--------------------")
 
 
-def printOptions(chooseN=False):
-    print("The simulation needs a duration and timestep.")
-    choice = input(
-        "Would you like to (1) use the defaults or (2) enter your own? ")
+def faketypeOptions(chooseN=False, defaultN=0):
+    faketype("""
+DURATION and TIMESTEP
+The duration specifies the amount of time the simulation runs. The timestep specifies the amount of time over which to \"nudge\" the particles in each step of the numerical integration. A smaller time step leads to a longer calculation time but gives more accurate results.""")
+    choice = input("""Would you like to
+    (1) use the defaults (1 year, 0.5 days) or
+    (2) enter your own?
+Enter a 1 or 2: """)
     while choice != "1" and choice != "2":
-        print("Invalid selection")
+        faketype("Invalid selection. Enter 1 or 2: ", newline=False)
         choice = input()
     if choice == "1":
         duration = 365 * 24 * 60 * 60  # 1 year
-        timestep = 60 * 60 * 24  # 1 day
+        timestep = 60 * 60 * 24 * 0.5  # 0.5 days
     else:
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
         timestep = float(input("Enter a time step in days: ")) * (60 * 60 * 24)
     if chooseN:
-        nChoice = input(
-            "Would you like to (1) use the default number of particles or (2) enter your own? ")
+        nChoice = input(f"""
+NUMBER OF PARTICLES
+Would you like to
+    (1) use the default number of particles ({defaultN}) or
+    (2) enter your own?
+Enter a 1 or a 2: """)
         while nChoice != "1" and nChoice != "2":
-            print("Invalid selection")
-            nChoice = input(
-                "Would you like to (1) use the default number of particles or (2) enter your own? ")
+            nChoice = input("Invalid selection. Enter a 1 or as 2: ")
         if nChoice == "1":
             n = 0
         else:
@@ -122,12 +127,16 @@ def printOptions(chooseN=False):
     return duration, timestep, n
 
 
-def printVelScatter():
-    choice = input("The particles in this system wil be given velocities drawn from a Gaussian distribution with width X. Would you like to (1) use the default X or (2) enter your own? ")
+def faketypeVelScatter(default=0):
+    faketype(f"""
+VELOCITY SCATTER
+The velocity scatter specifies the width of the Gaussian distribution from which to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will be.""")
+    choice = input(f"""Would you like to
+    (1) use the default ({default}) or
+    (2) enter your own?
+Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
-        print("Invalid selection")
-        choice = input(
-            "Would you like to (1) use the default X or (2) enter your own? ")
+        choice = input("Invalid selection. Enter a 1 or a 2: ")
     if choice == "2":
         vel_scatter = int(input("Enter the velocity scatter: "))
     else:
@@ -135,10 +144,16 @@ def printVelScatter():
     return vel_scatter
 
 
-def printMassRatios():
-    choice = input("The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles. Would you like to (1) use the default ratio or (2) enter your own? ")
+def faketypeMassRatios(default=0):
+    faketype(f"""
+MASS RATIO
+The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles.""")
+    choice = input(f"""Would you like to
+    (1) use the default ratio ({default}) or
+    (2) enter your own?
+Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
-        print("Invalid selection")
+        faketype("Invalid selection")
         choice = input(
             "Would you like to (1) use the default ratio or (2) enter your own? ")
     if choice == "2":
@@ -148,12 +163,16 @@ def printMassRatios():
     return ratio
 
 
-def printZVel():
-    choice = input("The evolution also depends on the z-velocity (the up-down velocity, relative to the flat disk) of the bodies. Would you like to (1) use the default z-velocity or (2) enter your own? ")
+def faketypeZVel(default=0):
+    faketype(f"""
+Z VELOCITY
+The z velocity of the particles is the vertical component of their velocity. The z velocity is the component of the velocity in the direction of the z axis.""")
+    choice = input(f"""Would you like to
+    (1) use the default z velocity ({default}) or
+    (2) enter your own?
+Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
-        print("Invalid selection")
-        choice = input(
-            "Would you like to (1) use the default z-velocity (1000) or (2) enter your own? ")
+        choice = input("Invalid selection. Enter a 1 or a 2: ")
     if choice == "2":
         z_vel = int(input("Enter the z-velocity: "))
     else:
@@ -161,11 +180,16 @@ def printZVel():
     return z_vel
 
 
-def printMaxMass():
-    choice = input(
-        "The maximum mass of the particles in the cluster is 0.01 solar masses by default. Would you like to (1) use the default or (2) enter your own? ")
+def faketypeMaxMass(default=0):
+    faketype("""
+MAXIMUM MASS
+The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
+    choice = input(f"""Would you like to
+    (1) use the default ({default}) or
+    (2) enter your own?
+Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
-        print("Invalid selection")
+        faketype("Invalid selection")
         choice = input(
             "Would you like to (1) use the default or (2) enter your own? ")
     if choice == "2":
@@ -177,27 +201,27 @@ def printMaxMass():
 
 def simulateSunEarth():
     masses, positions, velocities = systems.SunEarth()
-    duration, dt, n = printOptions()
+    duration, dt, n = faketypeOptions()
     return masses, positions, velocities, duration, dt
 
 
 def simulateSunEarthMoon():
     masses, positions, velocities = systems.SunEarthMoon()
-    duration, dt, n = printOptions()
+    duration, dt, n = faketypeOptions()
     return masses, positions, velocities, duration, dt
 
 
 def simulateKepler16():
     masses, positions, velocities = systems.Kepler16()
-    duration, dt, n = printOptions()
+    duration, dt, n = faketypeOptions()
     return masses, positions, velocities, duration, dt
 
 
 def simulateRandomCube():
-    duration, dt, n = printOptions(True)
+    duration, dt, n = faketypeOptions(chooseN=True, defaultN=30)
     if n == 0:
         n = 30
-    velScatter = printVelScatter()
+    velScatter = faketypeVelScatter(2000)
     if velScatter == 0:
         velScatter = 2000
     masses, positions, velocities = systems.randomCube(n, velScatter)
@@ -205,10 +229,10 @@ def simulateRandomCube():
 
 
 def simulateUniformCube():
-    duration, dt, n = printOptions(True)
+    duration, dt, n = faketypeOptions(True, 16)
     if n == 0:
         n = 16
-    velScatter = printVelScatter()
+    velScatter = faketypeVelScatter(5000)
     if velScatter == 0:
         velScatter = 5000
     masses, positions, velocities = systems.uniformCube(n, velScatter)
@@ -217,136 +241,46 @@ def simulateUniformCube():
 
 def simulatePythagorean():
     masses, positions, velocities = systems.pythagorean()
-    duration, dt, n = printOptions()
+    duration, dt, n = faketypeOptions()
     return masses, positions, velocities, duration, dt
 
 
 def simulateFigure8():
     masses, positions, velocities = systems.figure8()
-    duration, dt, n = printOptions()
+    duration, dt, n = faketypeOptions()
     return masses, positions, velocities, duration, dt
 
 
 def simulatePlanetesimalDisk():
-    duration, dt, n = printOptions(True)
+    duration, dt, n = faketypeOptions(True, 30)
     if n == 0:
         n = 30
-    massRatio = printMassRatios()
+    massRatio = faketypeMassRatios(1e-10)
     if massRatio == 0:
         massRatio = 1e-10
-    zVel = printZVel()
+    zVel = faketypeZVel(1000)
     if zVel == 0:
         zVel = 1000
     masses, positions, velocities = systems.planetesimalDisk(
         n, massRatio, zVel)
     return masses, positions, velocities, duration, dt
 
+
 def simulateTinyCluster():
-    duration, dt, n = printOptions(True)
+    duration, dt, n = faketypeOptions(True, 20)
     if n == 0:
         n = 20
-    maxMass = printMaxMass()
+    maxMass = faketypeMaxMass(0.01*1.989e30)
     if maxMass == 0:
         maxMass = 0.01 * 1.989e30
     masses, positions, velocities = systems.tinyCluster(n, maxMass)
     return masses, positions, velocities, duration, dt
 
 
-def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
-    timeInDays = timesInSecs / 86400
-    wri = ani.FFMpegWriter(fps=60)
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111, projection='3d')
-    # create a filename with system name, date, and time
-    filename = './videos/' + systemName + '_' + \
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
-    with wri.saving(fig, filename, 200):
-        print("Generating video...")
-        # calculate appropriate x,y limits for the plot
-        x_min = np.min(positions[:, 0, :])
-        x_max = np.max(positions[:, 0, :])
-        y_min = np.min(positions[:, 1, :])
-        y_max = np.max(positions[:, 1, :])
-        x_range = x_max - x_min
-        y_range = y_max - y_min
-        x_min -= 0.1 * x_range
-        x_max += 0.1 * x_range
-        y_min -= 0.1 * y_range
-        y_max += 0.1 * y_range
-        # calculate the z limits for the plot as the average of the x and y limits
-        z_min = (x_min + y_min) / 2
-        z_max = (x_max + y_max) / 2
-        for i in tqdm(range(len(timeInDays))):
-            isometric.clear()
-            isometric.set_xlabel("x")
-            isometric.set_ylabel("y")
-            isometric.set_zlabel("z")
-            isometric.set_xlim(lb, ub)
-            isometric.set_ylim(lb, ub)
-            isometric.set_zlim(lb, ub)
-            isometric.grid(False)
-            isometric.facecolor = 'black'
-            isometric.set_xticks([])
-            isometric.set_yticks([])
-            isometric.set_zticks([])
-            isometric.xaxis.pane.fill = False
-            isometric.yaxis.pane.fill = False
-            isometric.zaxis.pane.fill = False
-            isometric.xaxis.pane.set_edgecolor('k')
-            isometric.yaxis.pane.set_edgecolor('k')
-            isometric.zaxis.pane.set_edgecolor('k')
-            sizes = np.clip(masses / max(masses) * 300, 10, 300)
-            isometric.scatter(positions[:, 0, i], positions[:, 1, i],
-                              positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
-
-            xtra = 0.5
-            xz_plane.clear()
-            xz_plane.set_xlabel("x")
-            xz_plane.set_ylabel("z")
-            xz_plane.set_xlim(lb, ub)
-            xz_plane.set_ylim(lb, ub)
-            xz_plane.grid(False)
-            xz_plane.facecolor = 'black'
-            xz_plane.set_xticks([])
-            xz_plane.set_yticks([])
-            xz_plane.scatter(positions[:, 0, i], positions[:, 2, i],
-                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
-
-            xy_plane.clear()
-            xy_plane.set_xlabel("x")
-            xy_plane.set_ylabel("y")
-            xy_plane.set_xlim(lb, ub)
-            xy_plane.set_ylim(lb, ub)
-            xy_plane.grid(False)
-            xy_plane.facecolor = 'black'
-            xy_plane.set_xticks([])
-            xy_plane.set_yticks([])
-            xy_plane.scatter(positions[:, 0, i], positions[:, 1, i],
-                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
-
-            ke_2d.clear()
-            for j in range(len(absVelocities)):
-                p = ke_2d.plot(timeInDays[:i], kineticEnergy[j, :i],
-                               c=new_cmap(normed_distances[j, i]))
-                ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
-                ke_2d.set_xlabel("Time")
-                ke_2d.set_ylabel("Kinetic Energy")
-                ke_2d.set_xticks([])
-                ke_2d.set_yticks([])
-            fig.suptitle(f'{systemName} at {timeInDays[i]:.1f} Days')
-            fig.tight_layout()
-            wri.grab_frame()
-        # close the writer
-        wri.finish()
-        sleep(2)
-        print("Video generated!")
-        # open the video in the default video player
-        # os.system(f'open {filename}')
-
 def selectSystem():
     systems = ["SunEarth", "SunEarthMoon", "Kepler16", "RandomCube",
                "UniformCube", "Pythagorean", "Figure8", "PlanetesimalDisk", "TinyCluster"]
-    printSystemMenu()
+    faketypeSystemMenu()
     system = input("Please select a system: ")
     # attempt to convert the input to an integer
     validChoice = False
@@ -407,11 +341,11 @@ def selectSystem():
         faketype("--------------------")
         faketype("Tiny Cluster")
         return simulateTinyCluster(), systems[system-1]
-        
+
 
 def main():
     makeVideosDir()
-    printIntro()
+    faketypeIntro()
     cont = True
     while cont:
         (masses, positions, velocities, duration, dt), name = selectSystem()
@@ -421,6 +355,17 @@ def main():
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
         if cont == "n":
+            # get path to video directory
+            videoDir = os.path.join(os.getcwd(), "videos")
+            # get size of video directroy
+            size = 0
+            for path, dirs, files in os.walk(videoDir):
+                for f in files:
+                    fp = os.path.join(path, f)
+                    size += os.path.getsize(fp)
+            faketype(
+                f"Your videos are stored in {videoDir}, and they take up {size/1e6:.1f} MB.")
+            faketype("Thank you for using the simulation!")
             cont = False
 
 
