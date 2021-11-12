@@ -1,11 +1,12 @@
 import datetime
 import os
-from time import sleep
 import sys
+import time
+from time import sleep
 
 import matplotlib.animation as ani
-import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from tqdm import tqdm
@@ -158,6 +159,11 @@ def animate(masses, positions, velocities, duration, dt, name):
         max_distance_prev = max(
             [np.abs(np.max(distances)), np.abs(np.min(distances))])
 
+        # start a stopwatch
+        last = datetime.datetime.now()
+        with open('spacefacts.txt', 'r') as f:
+            # read the lines
+            lines = f.readlines()
         for i in tqdm(range(len(timeInDays))):
             positions, velocities = updateParticles(
                 masses, positions, velocities, dt)
@@ -232,6 +238,16 @@ def animate(masses, positions, velocities, duration, dt, name):
             fig.suptitle(f'{name} at {timeInDays[i]:.1f} Days')
             fig.tight_layout()
             wri.grab_frame()
+            # if 5 seconds have passed, print a space fact
+            if i == 0:
+                lastLineRead = 0
+            if (datetime.datetime.now() - last).seconds > 5:
+                # if the line has not been read yet, read it
+                if lastLineRead < len(lines):
+                    print(lines[lastLineRead])
+                    lastLineRead += 1
+                last = datetime.datetime.now()
+
         wri.finish()
         print("Finishing up...")
         sleep(5)

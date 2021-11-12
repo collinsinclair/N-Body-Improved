@@ -117,7 +117,7 @@ Enter a 1 or 2: """)
     if chooseN:
         faketype(f"""
 NUMBER OF PARTICLES""")
-        Choice = input(f"""Would you like to
+        nChoice = input(f"""Would you like to
     (1) use the default number of particles ({defaultN}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
