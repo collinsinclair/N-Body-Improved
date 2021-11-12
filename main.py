@@ -12,6 +12,8 @@ try:
     from tqdm import tqdm
 
     from src import leapfrog, systems
+
+    # TODO also need to check that ffmpeg is installed - how to do this from .py script?
 except ImportError:
     print("""
     An error occurred while importing one of the required modules.
@@ -49,17 +51,20 @@ def faketypeIntro():
     # roll the text onto the screen as if it's being typed by someone
     input(faketype(
         "Welcome to Collin's N-Body Gravity Simulation! Press return to continue.", newline=False))
-    input(faketype("This program simulates the time evolution of various gravitational systems like the Sun and Moon, a planetesimal disk, or a star cluster.", newline=False))
-    input(faketype("The simulation is based on the Leapfrog method, which is a numerical method for solving the equations of motion of a system of particles.", newline=False))
+    input(faketype(
+        "This program simulates the time evolution of various gravitational systems like the Sun and Moon, a planetesimal disk, or a star cluster. [return]", newline=False))
+    input(faketype(
+        "The simulation is based on the Leapfrog method, which is a numerical method for solving the equations of motion of a system of particles. [return]", newline=False))
     input(faketype("""Each system has parameters that you can change to modify the simulation, which include
     - the total duration (how long the simulation runs)
     - the time step (the simulation time between calculations - smaller = smoother and more accurate, but takes longer)
     - the number of bodies in the system
     - the scatter of starting velocities in the system
-    - and more!""", newline=False))
+    - and more! [return]""", newline=False))
     # get current working directory
     cwd = os.getcwd()
-    input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder that was created in the same folder you ran this program in: {}.".format(cwd), newline=False))
+    input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder that was created in the same folder you ran this program in: {}. [return]".format(
+        cwd), newline=False))
 
 
 def faketypeSystemMenu():
@@ -181,11 +186,12 @@ Enter a 1 or a 2: """)
 
 
 def faketypeMaxMass(default=0):
+    m_sun = 1.98892e30  # kg
     faketype("""
 MAXIMUM MASS
 The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
     choice = input(f"""Would you like to
-    (1) use the default ({default}) or
+    (1) use the default ({default/m_sun:.2f} solar masses) or
     (2) enter your own?
 Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
@@ -193,7 +199,8 @@ Enter a 1 or a 2: """)
         choice = input(
             "Would you like to (1) use the default or (2) enter your own? ")
     if choice == "2":
-        max_mass = float(input("Enter the maximum mass: "))
+        max_mass = m_sun * \
+            float(input("Enter the maximum mass (in solar masses): "))
     else:
         max_mass = 0
     return max_mass
@@ -348,6 +355,8 @@ def main():
     faketypeIntro()
     cont = True
     while cont:
+        # clear the screen
+        os.system('cls' if os.name == 'nt' else 'clear')
         (masses, positions, velocities, duration, dt), name = selectSystem()
         faketype("--------------------")
         leapfrog.animate(masses, positions, velocities, duration, dt, name)
@@ -355,6 +364,8 @@ def main():
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
         if cont == "n":
+            # clear the screen
+            os.system('cls' if os.name == 'nt' else 'clear')
             # get path to video directory
             videoDir = os.path.join(os.getcwd(), "videos")
             # get size of video directroy

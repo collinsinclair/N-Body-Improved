@@ -89,9 +89,6 @@ def updateParticles(masses, positions, velocities, dt):
     # calculate the ending velocity
     endingVelocities = (startingVelocities +
                         0.5*(endingAccelerations + startingAccelerations)*dt)
-    #endingKEs = -calculatePEs(masses, endingPositions, endingVelocities) + calculatePEs(masses, startingPositions, startingVelocities) + calculateKEs(masses, startingPositions, startingVelocities)
-    #endingVmags = (2*endingKEs/np.array(masses))**0.5
-    #endingVelocities = forces.rescale(endingVelocities, endingVmags)
 
     return endingPositions, endingVelocities
 
@@ -128,7 +125,6 @@ def animate(masses, positions, velocities, duration, dt, name):
     plt.style.use("dark_background")
 
     # Determine the framerate that results in one year in the simulation taking 15 seconds
-    # TODO this might be wrong
     oneyear = 15
     dt_in_days = dt / 86400
     fps_ = round(365 / (oneyear*dt_in_days))
@@ -145,7 +141,7 @@ def animate(masses, positions, velocities, duration, dt, name):
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
 
     with wri.saving(fig, filename, 100):
-        faketype("Generating video...")
+        faketype("Calculating trajectories and generating video...")
 
         # calculate the distance of each particle to the origin
         distances = np.array([forces.magnitude(positions[i])
@@ -162,6 +158,8 @@ def animate(masses, positions, velocities, duration, dt, name):
         x_max_m = np.max(positions[:, 0])
         y_min_m = np.min(positions[:, 1])
         y_max_m = np.max(positions[:, 1])
+        z_min_m = np.min(positions[:, 2])
+        z_max_m = np.max(positions[:, 2])
 
         for i in tqdm(range(len(timeInDays))):
             positions, velocities = updateParticles(
@@ -171,35 +169,34 @@ def animate(masses, positions, velocities, duration, dt, name):
                                   for k in range(nParticles)])
             normed_distances = distances / np.max(distances)
 
-            particledistances = np.array([[forces.magnitude(positions[j] - positions[k]) for j in range(nParticles)] for k in range(nParticles)])
-            normed_particledistances = particledistances / np.max(particledistances)
+            KEs[:, i] = calculateKEs(
+                masses, positions, velocities)
 
-            # add a new ke to the list for each time step
-            KEs[:, i] = calculateKEs(masses, positions, velocities) #TODO fix me please
-
-            # ----- can these be made cleaner?
+            # this whole business keeps the axes on the same scale and (0,0,0) in the center
             x_min_m = min(np.min(positions[:, 0]), x_min_m)
             x_max_m = max(np.max(positions[:, 0]), x_max_m)
             y_min_m = min(np.min(positions[:, 1]), y_min_m)
             y_max_m = max(np.max(positions[:, 1]), y_max_m)
+            z_max_m = max(np.max(positions[:, 2]), z_max_m)
+            z_min_m = min(np.min(positions[:, 2]), z_min_m)
             x_range = x_max_m - x_min_m
             y_range = y_max_m - y_min_m
+            z_range = z_max_m - z_min_m
             x_min = x_min_m - 0.1 * x_range
             x_max = x_max_m + 0.1 * x_range
             y_min = y_min_m - 0.1 * y_range
             y_max = y_max_m + 0.1 * y_range
-            # calculate the z limits for the plot as the average of the x and y limits
-            z_min = (x_min + y_min) / 2
-            z_max = (x_max + y_max) / 2
-            # -----
+            z_min = z_min_m - 0.1 * z_range
+            z_max = z_max_m + 0.1 * z_range
+            bound = np.abs(max([x_min, x_max, y_min, y_max, z_min, z_max]))
 
             isometric.clear()
             isometric.set_xlabel("x")
             isometric.set_ylabel("y")
             isometric.set_zlabel("z")
-            isometric.set_xlim(x_min, x_max)
-            isometric.set_ylim(y_min, y_max)
-            isometric.set_zlim(z_min, z_max)
+            isometric.set_xlim(-bound, bound)
+            isometric.set_ylim(-bound, bound)
+            isometric.set_zlim(-bound, bound)
             isometric.grid(False)
             isometric.facecolor = 'black'
             isometric.set_xticks([])
@@ -213,13 +210,13 @@ def animate(masses, positions, velocities, duration, dt, name):
             isometric.zaxis.pane.set_edgecolor('k')
             sizes = np.clip(masses / max(masses) * 300, 10, 300)
             isometric.scatter(positions[:, 0], positions[:, 1],
-                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)  # , alpha=0.8) # the 3d plotting uses variable alphas to show depth
 
             xz_plane.clear()
             xz_plane.set_xlabel("x")
             xz_plane.set_ylabel("z")
-            xz_plane.set_xlim(x_min, x_max)
-            xz_plane.set_ylim(z_min, z_max)
+            xz_plane.set_xlim(-bound, bound)
+            xz_plane.set_ylim(-bound, bound)
             xz_plane.grid(False)
             xz_plane.facecolor = 'black'
             xz_plane.set_xticks([])
@@ -230,19 +227,19 @@ def animate(masses, positions, velocities, duration, dt, name):
             xy_plane.clear()
             xy_plane.set_xlabel("x")
             xy_plane.set_ylabel("y")
-            xy_plane.set_xlim(x_min, x_max)
-            xy_plane.set_ylim(y_min, y_max)
+            xy_plane.set_xlim(-bound, bound)
+            xy_plane.set_ylim(-bound, bound)
             xy_plane.grid(False)
             xy_plane.facecolor = 'black'
             xy_plane.set_xticks([])
             xy_plane.set_yticks([])
             xy_plane.scatter(positions[:, 0], positions[:, 1],
-                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)  # TODO why does this not show the same color as the other plots?
 
             ke_2d.clear()
             for j in range(KEs.shape[0]):
                 ke_2d.plot(timeInDays[:i], KEs[j, :i],
-                               c=cmap(normed_distances[j]))
+                           c=cmap(normed_distances[j]))
                 ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
                 ke_2d.set_xlabel("Time")
                 ke_2d.set_ylabel("Kinetic Energy")
