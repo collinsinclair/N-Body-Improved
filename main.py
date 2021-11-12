@@ -290,175 +290,103 @@ def simulateTinyCluster():
 
 def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
     plt.style.use("dark_background")
+
+    # Determine the framerate that results in one year in the simulation taking 15 seconds
     timeInDays = timesInSecs / 86400
-    oneyear = 15  # how long one year in simulation should take in real seconds
+    oneyear = 15
     dt = (timesInSecs[1] - timesInSecs[0]) / (24 * 3600)
     fps_ = round(365 / (oneyear*dt))
+
+    # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
     fig = plt.figure(figsize=(30, 10))
-    ax = fig.add_subplot(131, projection='3d')
-    # create an axes below the 3d project for the velocities of the particles
-    ax2 = fig.add_subplot(393)
-    ax3 = fig.add_subplot(132, projection='3d')
-    ax4 = fig.add_subplot(133, projection='3d')
-    # create a filename with system name, date, and time
+    isometric = fig.add_subplot(131, projection='3d')
+    ke_2d = fig.add_subplot(393)
+    xz_plane = fig.add_subplot(132)
+    xy_plane = fig.add_subplot(133)
+
     filename = './videos/' + systemName + '_' + \
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
+
     with wri.saving(fig, filename, 100):
         faketype("Generating video...")
-        # calculate appropriate x,y limits for the plot
-        # x_min = np.min(positions[:, 0, :])
-        # x_max = np.max(positions[:, 0, :])
-        # y_min = np.min(positions[:, 1, :])
-        # y_max = np.max(positions[:, 1, :])
-        # x_range = x_max - x_min
-        # y_range = y_max - y_min
-        # x_min -= 0.1 * x_range
-        # x_max += 0.1 * x_range
-        # y_min -= 0.1 * y_range
-        # y_max += 0.1 * y_range
-        # if there are more than 3 particles
         if len(masses) > 3:
             ub = np.quantile(positions[:, 0:2, :], 0.9)
             lb = np.quantile(positions[:, 0:2, :], 0.1)
         else:
             ub = np.max(positions[:, 0:2, :])
             lb = np.min(positions[:, 0:2, :])
-        # calculate the z limits for the plot as the average of the x and y limits
-        # z_min = (x_min + y_min) / 2
-        # z_max = (x_max + y_max) / 2
         distances = np.sqrt(
             positions[:, 0, :]**2 + positions[:, 1, :]**2 + positions[:, 2, :]**2)
-        # normalize the distances to the range [0, 1]
         normed_distances = distances / np.max(distances)
-        # calculate absolute velocities
         absVelocities = np.sqrt(
             velocities[:, 0, :]**2 + velocities[:, 1, :]**2 + velocities[:, 2, :]**2)
-        # get plasma colormap
         cmap = plt.get_cmap('plasma')
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
-        # calculate the kinetic energy of each particle with the same dimensions as absVelocities
         kineticEnergy = 0.5 * masses[:, None] * absVelocities**2
-        normed_KE = kineticEnergy / np.max(kineticEnergy)
-        scaled_KE = kineticEnergy / np.min(kineticEnergy)
-        # calculate the position of the center of gravity
-        # x component
-        x_cg = np.sum(masses[:, None, None] *
-                      positions[:, 0, 0]) / np.sum(masses)
-        # y component
-        y_cg = np.sum(masses[:, None, None] *
-                      positions[:, 1, 0]) / np.sum(masses)
-        # z component
-        z_cg = np.sum(masses[:, None, None] *
-                      positions[:, 2, 0]) / np.sum(masses)
-        cg = np.array([x_cg, y_cg, z_cg])
-        # calculate the distance of each particle from the center of gravity
-        # distancesFromCOG = np.sqrt((positions[:, 0, :] - cg[0])**2 +
-        #                            (positions[:, 1, :] - cg[1])**2 +
-        #                            (positions[:, 2, :] - cg[2])**2)
-        # normedDistancesFromCOG = distancesFromCOG / np.max(distancesFromCOG)
         for i in tqdm(range(len(timeInDays))):
-            ax.clear()
-            # ax.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
-            ax.set_zlabel("z")
-            ax.set_xlim(lb, ub)
-            ax.set_ylim(lb, ub)
-            ax.set_zlim(lb, ub)
-            # Hide grid lines
-            ax.grid(False)
-            ax.facecolor = 'black'
-            # Hide axes ticks
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_zticks([])
-            ax.xaxis.pane.fill = False
-            ax.yaxis.pane.fill = False
-            ax.zaxis.pane.fill = False
-            ax.xaxis.pane.set_edgecolor('k')
-            ax.yaxis.pane.set_edgecolor('k')
-            ax.zaxis.pane.set_edgecolor('k')
+            isometric.clear()
+            isometric.set_xlabel("x")
+            isometric.set_ylabel("y")
+            isometric.set_zlabel("z")
+            isometric.set_xlim(lb, ub)
+            isometric.set_ylim(lb, ub)
+            isometric.set_zlim(lb, ub)
+            isometric.grid(False)
+            isometric.facecolor = 'black'
+            isometric.set_xticks([])
+            isometric.set_yticks([])
+            isometric.set_zticks([])
+            isometric.xaxis.pane.fill = False
+            isometric.yaxis.pane.fill = False
+            isometric.zaxis.pane.fill = False
+            isometric.xaxis.pane.set_edgecolor('k')
+            isometric.yaxis.pane.set_edgecolor('k')
+            isometric.zaxis.pane.set_edgecolor('k')
             sizes = np.clip(masses / max(masses) * 300, 10, 300)
-            # give each particle a different color based on its distance from the origin
-            sp = ax.scatter(positions[:, 0, i], positions[:, 1, i],
-                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
+            isometric.scatter(positions[:, 0, i], positions[:, 1, i],
+                              positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
 
-            ax3.clear()
-            # ax3.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
-            ax3.set_xlabel("x")
-            ax3.set_ylabel("y")
-            ax3.set_zlabel("z")
-            ax3.set_xlim(lb, ub)
-            ax3.set_ylim(lb, ub)
-            ax3.set_zlim(lb, ub)
-            # Hide grid lines
-            ax3.grid(False)
-            ax3.facecolor = 'black'
-            # Hide axes ticks
-            ax3.set_xticks([])
-            ax3.set_yticks([])
-            ax3.set_zticks([])
-            ax3.xaxis.pane.fill = False
-            ax3.yaxis.pane.fill = False
-            ax3.zaxis.pane.fill = False
-            ax3.xaxis.pane.set_edgecolor('k')
-            ax3.yaxis.pane.set_edgecolor('k')
-            ax3.zaxis.pane.set_edgecolor('k')
-            ax3.scatter(positions[:, 0, i], positions[:, 1, i],
-                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
-            # view x-z plane
-            ax3.view_init(elev=0, azim=90)
-            # give each particle a different color based on its distance from the origin
+            xz_plane.clear()
+            xz_plane.set_xlabel("x")
+            xz_plane.set_ylabel("z")
+            xz_plane.set_xlim(lb, ub)
+            xz_plane.set_ylim(lb, ub)
+            xz_plane.grid(False)
+            xz_plane.facecolor = 'black'
+            xz_plane.set_xticks([])
+            xz_plane.set_yticks([])
+            xz_plane.scatter(positions[:, 0, i], positions[:, 2, i],
+                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
 
-            ax4.clear()
-            # ax4.set_title(f'{systemName} at {timeInDays[i]:.1f} Days')
-            ax4.set_xlabel("x")
-            ax4.set_ylabel("y")
-            ax4.set_zlabel("z")
-            ax4.set_xlim(lb, ub)
-            ax4.set_ylim(lb, ub)
-            ax4.set_zlim(lb, ub)
-            # Hide grid lines
-            ax4.grid(False)
-            ax4.facecolor = 'black'
-            # Hide axes ticks
-            ax4.set_xticks([])
-            ax4.set_yticks([])
-            ax4.set_zticks([])
-            ax4.xaxis.pane.fill = False
-            ax4.yaxis.pane.fill = False
-            ax4.zaxis.pane.fill = False
-            ax4.xaxis.pane.set_edgecolor('k')
-            ax4.yaxis.pane.set_edgecolor('k')
-            ax4.zaxis.pane.set_edgecolor('k')
-            ax4.scatter(positions[:, 0, i], positions[:, 1, i],
-                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
-            # view x-y plane
-            ax4.view_init(elev=90, azim=90)
+            xy_plane.clear()
+            xy_plane.set_xlabel("x")
+            xy_plane.set_ylabel("y")
+            xy_plane.set_xlim(lb, ub)
+            xy_plane.set_ylim(lb, ub)
+            xy_plane.grid(False)
+            xy_plane.facecolor = 'black'
+            xy_plane.set_xticks([])
+            xy_plane.set_yticks([])
+            xy_plane.scatter(positions[:, 0, i], positions[:, 1, i],
+                             s=sizes, c=normed_distances[:, i], cmap=new_cmap)
 
-            ax2.clear()
-            # line plot of each particle's velocity as a function of time colored by mass
+            ke_2d.clear()
             for j in range(len(absVelocities)):
-                p = ax2.plot(timeInDays[:i], kineticEnergy[j, :i],
-                             c=new_cmap(normed_distances[j, i]))
-                ax2.set_xlim(timeInDays[0], timeInDays[-1])
-                ax2.set_xlabel("Time")
-                ax2.set_ylabel("Kinetic Energy")
-                ax2.set_xticks([])
-                ax2.set_yticks([])
-            # if i == 0:
-            #     cb = fig.colorbar(sp, ax=ax2)
-            #     cb.set_label("Distance from Barycenter")
+                p = ke_2d.plot(timeInDays[:i], kineticEnergy[j, :i],
+                               c=new_cmap(normed_distances[j, i]))
+                ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
+                ke_2d.set_xlabel("Time")
+                ke_2d.set_ylabel("Kinetic Energy")
+                ke_2d.set_xticks([])
+                ke_2d.set_yticks([])
             fig.suptitle(f'{systemName} at {timeInDays[i]:.1f} Days')
             fig.tight_layout()
             wri.grab_frame()
-        # close the writer
         wri.finish()
         print("Finishing up...")
         sleep(5)
         faketype("Video generated!")
-        # attempt to open the video in the default video player
         try:
             os.system(f'open "{filename}"')
         except:
