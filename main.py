@@ -5,12 +5,20 @@ import sys
 from time import sleep
 
 import matplotlib.animation as ani
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from tqdm import tqdm
 
 from src import forces, leapfrog, systems
+
+
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
 
 
 def makeVideosDir():
@@ -89,7 +97,7 @@ Enter a 1 or 2: """)
         choice = input()
     if choice == "1":
         duration = 365 * 24 * 60 * 60  # 1 year
-        timestep = 60 * 60 * 24  # 1 day
+        timestep = 60 * 60 * 24 * 0.5  # 0.5 days
     else:
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
@@ -115,8 +123,8 @@ Enter a 1 or a 2: """)
 def faketypeVelScatter(default=0):
     choice = input(f"""
 VELOCITY SCATTER
-The velocity scatter specifies the width of the Gaussian distribution from which to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will be.
-Would you like to
+The velocity scatter specifies the width of the Gaussian distribution from which to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will be.""")
+    choice = input(f"""Would you like to
     (1) use the default ({default}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
@@ -130,10 +138,10 @@ Enter a 1 or a 2: """)
 
 
 def faketypeMassRatios(default=0):
-    choice = input(f"""
+    faketype(f"""
 MASS RATIO
-The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles.
-Would you like to
+The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles.""")
+    choice = input(f"""Would you like to
     (1) use the default ratio ({default}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
@@ -149,10 +157,10 @@ Enter a 1 or a 2: """)
 
 
 def faketypeZVel(default=0):
-    choice = input(f"""
+    faketype(f"""
 Z VELOCITY
-The z velocity of the particles is the vertical component of their velocity. The z velocity is the component of the velocity in the direction of the z axis.
-Would you like to
+The z velocity of the particles is the vertical component of their velocity. The z velocity is the component of the velocity in the direction of the z axis.""")
+    choice = input(f"""Would you like to
     (1) use the default z velocity ({default}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
@@ -165,9 +173,13 @@ Enter a 1 or a 2: """)
     return z_vel
 
 
-def faketypeMaxMass():
-    choice = input(
-        "The maximum mass of the particles in the cluster is 0.01 solar masses by default. Would you like to (1) use the default or (2) enter your own? ")
+def faketypeMaxMass(default=0):
+    faketype("""
+MAXIMUM MASS
+The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
+    choice = input(f"""Would you like to
+    (1) use the default ({default}) or
+    (2) enter your own?""")
     while choice != "1" and choice != "2":
         faketype("Invalid selection")
         choice = input(
@@ -278,8 +290,9 @@ def simulateTinyCluster():
 def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
     plt.style.use("dark_background")
     timeInDays = timesInSecs / 86400
-    # determine fps such that time passes at 20 days per second
-    fps_ = int(20 / (timeInDays[1] - timeInDays[0]))
+    oneyear = 15  # how long one year in simulation should take in real seconds
+    dt = (timesInSecs[1] - timesInSecs[0]) / (24 * 3600)
+    fps_ = round(365 / (oneyear*dt))
     wri = ani.FFMpegWriter(fps=fps_)
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
@@ -288,7 +301,7 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
     # create a filename with system name, date, and time
     filename = './videos/' + systemName + '_' + \
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
-    with wri.saving(fig, filename, 200):
+    with wri.saving(fig, filename, 100):
         faketype("Generating video...")
         # calculate appropriate x,y limits for the plot
         # x_min = np.min(positions[:, 0, :])
@@ -301,8 +314,8 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         # x_max += 0.1 * x_range
         # y_min -= 0.1 * y_range
         # y_max += 0.1 * y_range
-        ub = np.max(positions[:, 0:2, :])
-        lb = np.min(positions[:, 0:2, :])
+        ub = np.quantile(positions[:, 0:2, :], 0.9)
+        lb = np.quantile(positions[:, 0:2, :], 0.1)
         # calculate the z limits for the plot as the average of the x and y limits
         # z_min = (x_min + y_min) / 2
         # z_max = (x_max + y_max) / 2
@@ -313,8 +326,9 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         # calculate absolute velocities
         absVelocities = np.sqrt(
             velocities[:, 0, :]**2 + velocities[:, 1, :]**2 + velocities[:, 2, :]**2)
-        # get viridis colormap
+        # get plasma colormap
         cmap = plt.get_cmap('plasma')
+        new_cmap = truncate_colormap(cmap, 0.3, 1.0)
         # calculate the kinetic energy of each particle with the same dimensions as absVelocities
         kineticEnergy = 0.5 * masses[:, None] * absVelocities**2
         normed_KE = kineticEnergy / np.max(kineticEnergy)
@@ -357,17 +371,17 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
             ax.xaxis.pane.set_edgecolor('k')
             ax.yaxis.pane.set_edgecolor('k')
             ax.zaxis.pane.set_edgecolor('k')
-            sizes = np.clip(masses / max(masses) * 200, 5, 200)
+            sizes = np.clip(masses / max(masses) * 300, 10, 300)
             # give each particle a different color based on its distance from the origin
             sp = ax.scatter(positions[:, 0, i], positions[:, 1, i],
-                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap='plasma')
+                            positions[:, 2, i], s=sizes, c=normed_distances[:, i], cmap=new_cmap)
             ax2.clear()
             # line plot of each particle's velocity as a function of time colored by mass
             for j in range(len(absVelocities)):
                 p = ax2.plot(timeInDays[:i], kineticEnergy[j, :i],
-                             c=cmap(normed_distances[j, i]))
+                             c=new_cmap(normed_distances[j, i]))
                 ax2.set_xlim(timeInDays[0], timeInDays[-1])
-                ax2.set_xlabel("Time (Days)")
+                ax2.set_xlabel("Time")
                 ax2.set_ylabel("Kinetic Energy")
                 ax2.set_xticks([])
                 ax2.set_yticks([])
@@ -382,7 +396,7 @@ def animateTrajectories(timesInSecs, positions, velocities, masses, systemName):
         faketype("Video generated!")
         # attempt to open the video in the default video player
         try:
-            os.system(f'open {filename}')
+            os.system(f'open "{filename}"')
         except:
             faketype("Could not open video in default video player.")
 
@@ -495,5 +509,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# TODO: pass default parameters through print functions
-# TODO: remove timestep?
