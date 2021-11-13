@@ -164,6 +164,11 @@ def animate(masses, positions, velocities, duration, dt, name):
         with open('spacefacts.txt', 'r') as f:
             # read the lines
             lines = f.readlines()
+
+        initial_sizes = np.clip(masses / max(masses) * 300, 10, 300)
+        initial_scale = max_distance_prev*1.1
+
+
         for i in tqdm(range(len(timeInDays))):
             positions, velocities = updateParticles(
                 masses, positions, velocities, dt)
@@ -198,7 +203,7 @@ def animate(masses, positions, velocities, duration, dt, name):
             isometric.xaxis.pane.set_edgecolor('k')
             isometric.yaxis.pane.set_edgecolor('k')
             isometric.zaxis.pane.set_edgecolor('k')
-            sizes = np.clip(masses / max(masses) * 300, 10, 300)
+            sizes = initial_sizes * (initial_scale/bound)**2
             isometric.scatter(positions[:, 0], positions[:, 1],
                               positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)  # , alpha=0.8) # the 3d plotting uses variable alphas to show depth
 
