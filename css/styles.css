@@ -1,9 +1,32 @@
 body {
-    font-family: system-ui, sans-serif;
-    background-color: black;
-    color: white;
+  font-family: system-ui, sans-serif;
+  background-color: black;
+  color: white;
 }
 
 h1 {
+  text-align: center;
+}
+
+h2 {
+  text-align: center;
+}
+
+a {
+  color: lightseagreen;
+}
+
+code {
+  font-family: monospace;
+  background-color: black;
+  color: #40ff00;
+}
+
+video {
+    display: block;
+    width: 90%;
+    height: auto;
     text-align: center;
+    margin: 0 auto;
+    padding: 10px;
 }
