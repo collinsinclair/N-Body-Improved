@@ -17,4 +17,4 @@ Welcome to my new-and-improved N-Body Simulation application! This command line-
 Once the user provides input for all customizable values, the program will generate, save, and display an animation of the system.
 
 ## Usage
-[Clone the repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your device and navigate to its directory. First, to ensure that the simulation has all of the resources needed to run, use `pip3 install -r requirements.txt` or equivalent, then run `python3 main.py` and have fun!
+[Clone the repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your device and navigate to its directory. First, to ensure that the simulation has all of the resources needed to run, use `pip3 install -r requirements.txt` or equivalent. It is also necessary to **install [ffmpeg](https://www.ffmpeg.org/download.html)** to create the animation. Then, simply run `python3 main.py` and have fun!
