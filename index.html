@@ -1,34 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N-Body Simulation</title>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-    <h1>N-Body Simulation</h1>
-    <p>Imagine a whole bunch of stuff (preferably coalesced into bodies like stars or planets) out there in space. Anywhere, anytime. Just, <em>imagine</em>. What are those things doing? Are they still? Spinning? Moving towards or away from one another? If only we could look at it for ourselves... But wait, <strong>we can!</strong> - and this tool (or toy?) can help.</p>
-    <p>This <em>N-Body Simulation</em> started its life as my final project for CU Boulder's ASTR 2600: Introduction to Scientific Programming, but back then I didn't know what I was doing or how to do it, at least as far as useful programs go. So I decided to give that old IPython notebook a facelift and turn it into something others could experience and (hopefully) learn from.</p>
-    <h2>Installation</h2>
-    <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will exist as an app instead of a series of scripts and modules that exist separately. For now, provided you have access to a Unix-like command line, you can run <code>pip3 install -r requirements.txt</code>. You'll also have to <a href="https://www.ffmpeg.org/download.html">install ffmpeg,</a> a multimedia framework.</p>
-    <p>Once you have everything installed, you can <em>finally</em> run the program with <code>python3 main.py</code>. This will start the command line interface (or CLI, once you get to know it better).</p>
 
-    <h2>Use</h2>
-    You will first be greeted by some text introducing you to the program.
-    <video src="media/intro.mov" loop autoplay>Sorry, your browser doesn't support embedded videos.</video>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>N-Body Simulation</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
 
-    <h2>Simulations</h2>
-    <h3>Sun-Earth</h3>
-    <video src="media/SunEarth_2021-11-13-01-44-57.mp4" loop autoplay></video>
-    <h3>Sun-Earth-Moon</h3>
+    <body>
+        <h1>N-Body Simulation</h1>
+        <p>Imagine a whole bunch of stuff (preferably coalesced into bodies like stars or planets) out there in space.
+            Anywhere, anytime. Just, <em>imagine</em>. What are those things doing? Are they still? Spinning? Moving
+            towards or away from one another? If only we could look at it for ourselves... But wait, <strong>we
+                can!</strong> - and this tool (or toy?) can help.</p>
+        <p>This <em>N-Body Simulation</em> started its life as my final project for CU Boulder's ASTR 2600: Introduction
+            to Scientific Programming, but back then I didn't know what I was doing or how to do it, at least as far as
+            useful programs go. So I decided to give that old IPython notebook a facelift and turn it into something
+            others could experience and (hopefully) learn from.</p>
+        <h2>Installation</h2>
+        <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a
+                href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will
+            exist as an app instead of a series of scripts and modules that exist separately. For now, provided you have
+            access to a Unix-like command line, you can run <code>pip3 install -r requirements.txt</code>. You'll also
+            have to <a href="https://www.ffmpeg.org/download.html">install ffmpeg,</a> a multimedia framework.</p>
+        <p>Once you have everything installed, you can <em>finally</em> run the program with
+            <code>python3 main.py</code>. This will start the command line interface (or CLI, once you get to know it
+            better).
+        </p>
 
-    <h3>Kepler-16</h3>
-    <h3>Random Cube of Bodies</h3>
-    <h3>Uniform Cube of Bodies</h3>
-    <h3>Pythagorean System</h3>
-    <h3>Figure 8</h3>
-    <h3></h3>
-</body>
+        <h2>Use</h2>
+        You will first be greeted by some text introducing you to the program.
+        <video src="media/intro.mov" loop autoplay>Sorry, your browser doesn't support embedded videos.</video>
+
+        <h2>Simulations</h2>
+        <h3>Sun-Earth</h3>
+        <video src="media/SunEarth_2021-11-13-01-44-57.mp4" loop autoplay></video>
+        <h3>Sun-Earth-Moon</h3>
+        <video src="media/SunEarthMoon_2021-11-13-01-46-40.mp4" loop autoplay></video>
+        <h3>Kepler-16</h3>
+        <video src="media/Kepler16_2021-11-13-01-48-46.mp4" loop autoplay></video>
+        <h3>Random Cube of Bodies</h3>
+        <video src="media/RandomCube_2021-11-13-01-50-30.mp4" loop autoplay></video>
+        <h3>Uniform Cube of Bodies</h3>
+        <h3>Pythagorean System</h3>
+        <h3>Figure 8</h3>
+        <h3></h3>
+    </body>
+
 </html>
