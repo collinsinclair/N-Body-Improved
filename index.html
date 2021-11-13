@@ -69,9 +69,28 @@
             both oscillate simultaneously.</p>
         <video src="media/Kepler16_2021-11-13-01-48-46.mp4" loop autoplay controls></video>
         <h3>Random Cube of Bodies</h3>
+        <p>This simulation is the first example of things that can go terribly wrong in numerical computation. Almost
+            immediately, two of the bodies in the cube collide (more or less, i.e., they fling past each other), sending
+            them off into space at exceptionally high velocities. This isn't entirely unphysical, but what we're seeing
+            here is the force of gravity going through the roof (remember, gravitation force is inversely proportional
+            the the square of separation - this means that when objects get very close, gravity gets very large). The
+            "course" timestep of the simulation (0.5 days) allowed for the close approach and slingshot phenomenon, but
+            in the next step the objects were already so far separated that they weren't going to be slowed down by
+            gravity (again, at large distances gravity gets very small). This is what resulted in the apparent creation
+            of energy (and lots of it), as well as the system becoming almost unobservable as those two bodies get
+            further and further away from the center of the system.</p>
+        <p>I think this is a good time to acknowledge the work of a close friend of mine who has contributed some
+            amazing work to this project. First, he coded the "perspective" effect where the particles get smaller as
+            the bounds increase to keep everything in frame - a much better visualization than I initially had. Also, he
+            wrote a version of the calculations that use <em>adaptive time steps</em>, a way to reduce these
+            non-physical phenomena. I haven't included this improvement quite yet, as there are still some kinks to iron
+            out. Either way, his work has helped to elevate this project to the next level, and I am thankful that he
+            has decided to lend me some of his genius on all of this.</p>
         <video src="media/RandomCube_2021-11-13-01-50-30.mp4" loop autoplay controls></video>
         <h3>Uniform Cube of Bodies</h3>
+        <p>Here we see another slingshot phenomenon, something that could be fixed by an adaptive time step process as mentioned above, or by simply using smaller constant time steps. In the video below, I used a time step of 0.5 days.</p>
         <video src="media/UniformCube_2021-11-13-01-53-14.mp4" loop autoplay controls></video>
+        <p>Now let's use a finer time step and see how the result change (and since this system isn't randomly generated, the results are a true testament to the power - and shortcomings - of numerical integration).</p>
         <h3>Pythagorean System</h3>
         <video src="media/Pythagorean_2021-11-13-01-55-52.mp4" loop autoplay controls></video>
         <h3>Figure 8</h3>
