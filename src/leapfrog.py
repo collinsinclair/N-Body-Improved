@@ -174,11 +174,11 @@ def animate(masses, positions, velocities, duration, dt, name):
         max_distance_prev = max(
             [np.abs(np.max(distances)), np.abs(np.min(distances))])
 
-        # start a stopwatch
-        last = datetime.datetime.now()
-        with open('spacefacts.txt', 'r') as f:
-            # read the lines
-            lines = f.readlines()
+        # # start a stopwatch
+        # last = datetime.datetime.now()
+        # with open('spacefacts.txt', 'r') as f:
+        #     # read the lines
+        #     lines = f.readlines()
 
         initial_sizes = np.clip(masses / max(masses) * 300, 10, 300)
         initial_scale = max_distance_prev*1.1
@@ -259,14 +259,14 @@ def animate(masses, positions, velocities, duration, dt, name):
             fig.tight_layout()
             wri.grab_frame()
             # if 5 seconds have passed, print a space fact
-            if i == 0:
-                lastLineRead = 0
-            if (datetime.datetime.now() - last).seconds > 10:
-                # if the line has not been read yet, read it
-                if lastLineRead < len(lines):
-                    print(lines[lastLineRead])
-                    lastLineRead += 1
-                last = datetime.datetime.now()
+            # if i == 0:
+            #     lastLineRead = 0
+            # if (datetime.datetime.now() - last).seconds > 10:
+            #     # if the line has not been read yet, read it
+            #     if lastLineRead < len(lines):
+            #         print(lines[lastLineRead])
+            #         lastLineRead += 1
+            #     last = datetime.datetime.now()
 
         wri.finish()
         print("Finishing up...")

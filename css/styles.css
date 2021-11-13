@@ -12,6 +12,10 @@ h2 {
   text-align: center;
 }
 
+h3 {
+  text-align: center;
+}
+
 a {
   color: lightseagreen;
 }
@@ -24,7 +28,7 @@ code {
 
 video {
     display: block;
-    width: 90%;
+    width: 50%;
     height: auto;
     text-align: center;
     margin: 0 auto;
