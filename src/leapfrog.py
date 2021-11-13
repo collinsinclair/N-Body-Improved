@@ -30,6 +30,40 @@ def faketype(words, speed=0.001, newline=True):
         print("")
     return ""
 
+def updateParticle(masses, positions, velocities, dt, i):
+    force = forces.calculateForceVector(masses, positions, i, positions[i])
+    acceleration = force/masses[i]
+    nudge = velocities[i]*dt + 0.5 * acceleration*dt**2
+    pnudge, vnudge = updateParticleRecursive(masses, positions, velocities, dt, i, nudge, positions[i], velocities[i])
+    return positions[i] + pnudge, velocities[i] + vnudge
+
+
+def updateParticleRecursive(masses, positions, velocities, dt, i, prev, position, velocity):
+    startingPositions = np.array(positions)
+    startingVelocities = np.array(velocities)
+
+    dt = dt/2
+
+    force1 = forces.calculateForceVector(masses, positions, i, position)
+    acceleration1 = force1/masses[i]
+    nudge1 = velocity*dt + 0.5 * acceleration1*dt**2
+    vnudge1 = acceleration1*dt
+    force2 = forces.calculateForceVector(masses, positions, i, position+nudge1)
+    acceleration2 = force2/masses[i]
+    nudge2 = (velocity + vnudge1)*dt + 0.5 * acceleration2*dt**2
+    vnudge2 = acceleration2*dt
+
+    if forces.magnitude(nudge1+nudge2-prev)/forces.magnitude(nudge1+nudge2) > 0.01:
+        Nnudge1, Nvnudge1 = updateParticleRecursive(masses, positions, velocities, dt, i, nudge1, position, velocity)
+        Nnudge2, Nvnudge2 = updateParticleRecursive(masses, positions, velocities, dt, i, nudge1+nudge2-Nnudge1, position+Nnudge1, velocity+Nvnudge1)
+        return Nnudge1+Nnudge2, Nvnudge1+Nvnudge2
+    else:
+        return nudge1+nudge2, vnudge1+vnudge2
+
+
+
+
+
 
 def updateParticles(masses, positions, velocities, dt):
     """
@@ -57,39 +91,20 @@ def updateParticles(masses, positions, velocities, dt):
 
     """
 
-    startingPositions = np.array(positions)
-    startingVelocities = np.array(velocities)
+    endingPositions = np.array(positions)
+    endingVelocities = np.array(velocities)
 
     # how many particles are there?
-    nParticles, nDimensions = startingPositions.shape
+    nParticles, nDimensions = endingPositions.shape
 
     # make sure the three input arrays have consistent shapes
-    assert(startingVelocities.shape == startingPositions.shape)
+    assert(endingVelocities.shape == endingPositions.shape)
     assert(len(masses) == nParticles)
 
-    # calculate net force vectors on all particles, at the starting position
-    startingForces = np.array(
-        forces.calculateForceVectors(masses, startingPositions))
-
-    # calculate the acceleration due to gravity, at the starting position
-    startingAccelerations = startingForces / \
-        np.array(masses).reshape(nParticles, 1)
-
-    # calculate the ending position
-    nudge = startingVelocities*dt + 0.5 * \
-        startingAccelerations*dt**2  # nudge = v*dt + 1/2*a*dt^2
-    endingPositions = startingPositions + nudge
-
-    # calculate net force vectors on all particles, at the ending position
-    endingForces = np.array(
-        forces.calculateForceVectors(masses, endingPositions))
-
-    # calculate the acceleration due to gravity, at the ending position
-    endingAccelerations = endingForces/np.array(masses).reshape(nParticles, 1)
-
-    # calculate the ending velocity
-    endingVelocities = (startingVelocities +
-                        0.5*(endingAccelerations + startingAccelerations)*dt)
+    for i in range(nParticles):
+        position, velocity = updateParticle(masses, positions, velocities, dt, i)
+        endingPositions[i] = position
+        endingVelocities[i] = velocity
 
     return endingPositions, endingVelocities
 
