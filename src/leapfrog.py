@@ -35,30 +35,31 @@ def updateParticle(masses, positions, velocities, dt, i):
     acceleration = force/masses[i]
     nudge = velocities[i]*dt + 0.5 * acceleration*dt**2
     pnudge, vnudge = updateParticleRecursive(masses, positions, velocities, dt, i, nudge, positions[i], velocities[i])
-    return positions[i] + pnudge, velocities[i] + vnudge
+    return (positions[i] + pnudge), (velocities[i] + vnudge)
 
 
 def updateParticleRecursive(masses, positions, velocities, dt, i, prev, position, velocity):
     startingPositions = np.array(positions)
     startingVelocities = np.array(velocities)
 
-    dt = dt/2
-
     force1 = forces.calculateForceVector(masses, positions, i, position)
     acceleration1 = force1/masses[i]
-    nudge1 = velocity*dt + 0.5 * acceleration1*dt**2
-    vnudge1 = acceleration1*dt
+    nudge1 = velocity*(dt/2) + 0.5 * acceleration1*(dt/2)**2
     force2 = forces.calculateForceVector(masses, positions, i, position+nudge1)
     acceleration2 = force2/masses[i]
-    nudge2 = (velocity + vnudge1)*dt + 0.5 * acceleration2*dt**2
-    vnudge2 = acceleration2*dt
+    vnudge1 = 0.5*(acceleration1+acceleration2)*(dt/2)
+    nudge2 = (velocity + vnudge1)*(dt/2) + 0.5 * acceleration2*(dt/2)**2
+    force3 = forces.calculateForceVector(masses, positions, i, position+nudge1+nudge2)
+    acceleration3 = force3/masses[i]
+    vnudge2 = 0.5*(acceleration2+acceleration3)*(dt/2)
 
     if forces.magnitude(nudge1+nudge2-prev)/forces.magnitude(nudge1+nudge2) > 0.01:
-        Nnudge1, Nvnudge1 = updateParticleRecursive(masses, positions, velocities, dt, i, nudge1, position, velocity)
-        Nnudge2, Nvnudge2 = updateParticleRecursive(masses, positions, velocities, dt, i, nudge1+nudge2-Nnudge1, position+Nnudge1, velocity+Nvnudge1)
-        return Nnudge1+Nnudge2, Nvnudge1+Nvnudge2
+        print("IMPROVED")
+        Nnudge1, Nvnudge1 = updateParticleRecursive(masses, positions, velocities, dt/2, i, nudge1, position, velocity)
+        Nnudge2, Nvnudge2 = updateParticleRecursive(masses, positions, velocities, dt/2, i, nudge1+nudge2-Nnudge1, position+Nnudge1, velocity+Nvnudge1)
+        return (Nnudge1+Nnudge2), (Nvnudge1+Nvnudge2)
     else:
-        return nudge1+nudge2, vnudge1+vnudge2
+        return (nudge1+nudge2), (vnudge1+vnudge2)
 
 
 
@@ -91,8 +92,8 @@ def updateParticles(masses, positions, velocities, dt):
 
     """
 
-    endingPositions = np.array(positions)
-    endingVelocities = np.array(velocities)
+    endingPositions = np.array(positions).copy()
+    endingVelocities = np.array(velocities).copy()
 
     # how many particles are there?
     nParticles, nDimensions = endingPositions.shape
