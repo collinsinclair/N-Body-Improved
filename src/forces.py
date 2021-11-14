@@ -139,6 +139,21 @@ def forceVector(mi, mj, pos_i, pos_j):
     return force*direction # a numpy array, with units of Newtons
 
 
+def calculateForceVector(masses, positions, i, position):
+    vector = np.zeros(3)
+    N = len(positions)
+
+    # loop over all the particles we need to include in the force sum
+    for j in range(N):
+
+        # as long as i and j are not the same...
+        if j != i:
+
+            # ...add in the force vector of particle j acting on particle i
+            vector += forceVector(masses[i], masses[j], position, positions[j])
+
+    return vector
+
 # define a function to calculate force vectors for all particles
 def calculateForceVectors(masses, positions):
     """
