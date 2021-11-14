@@ -199,7 +199,7 @@ def animate(masses, positions, velocities, duration, dt, name):
             ke_2d.clear()
             for j in range(KEs.shape[0]):
                 ke_2d.plot(timeInDays[:i], KEs[j, :i],
-                           c=cmap(normed_distances[j]))
+                           c=new_cmap(normed_distances[j]))
                 ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
                 ke_2d.set_xlabel("Time")
                 ke_2d.set_ylabel("Kinetic Energy")
