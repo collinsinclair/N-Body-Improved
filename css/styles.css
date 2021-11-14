@@ -27,10 +27,18 @@ code {
 }
 
 video {
-    display: block;
-    width: 50%;
-    height: auto;
-    text-align: center;
-    margin: 0 auto;
-    padding: 10px;
+  display: block;
+  width: 90%;
+  height: auto;
+  text-align: center;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+img {
+  display: block;
+  width: 90%;
+  height: auto;
+  text-align: center;
+  margin: 0 auto;
 }

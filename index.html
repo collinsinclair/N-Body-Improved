@@ -1,32 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N-Body Simulation</title>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-    <h1>N-Body Simulation</h1>
-    <p>Imagine a whole bunch of stuff (preferably coalesced into bodies like stars or planets) out there in space. Anywhere, anytime. Just, <em>imagine</em>. What are those things doing? Are they still? Spinning? Moving towards or away from one another? If only we could look at it for ourselves... But wait, <strong>we can!</strong> - and this tool (or toy?) can help.</p>
-    <p>This <em>N-Body Simulation</em> started its life as my final project for CU Boulder's ASTR 2600: Introduction to Scientific Programming, but back then I didn't know what I was doing or how to do it, at least as far as useful programs go. So I decided to give that old IPython notebook a facelift and turn it into something others could experience and (hopefully) learn from.</p>
-    <h2>Installation</h2>
-    <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will exist as an app instead of a series of scripts and modules that exist separately. For now, provided you have access to a Unix-like command line, you can run <code>pip3 install -r requirements.txt</code>. You'll also have to <a href="https://www.ffmpeg.org/download.html">install ffmpeg,</a> a multimedia framework.</p>
-    <p>Once you have everything installed, you can <em>finally</em> run the program with <code>python3 main.py</code>. This will start the command line interface (or CLI, once you get to know it better).</p>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>N-Body Simulation</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
 
-    <h2>Use</h2>
-    You will first be greeted by some text introducing you to the program.
-    <video src="media/intro.mov" loop autoplay width=480>Sorry, your browser doesn't support embedded videos.</video>
+    <body>
+        <h1>N-Body Simulation</h1>
+        <p>Imagine a whole bunch of stuff (preferably coalesced into bodies like stars or planets) out there in space.
+            Anywhere, anytime. Just, <em>imagine</em>. What are those things doing? Are they still? Spinning? Moving
+            towards or away from one another? If only we could look at it for ourselves... But wait, <strong>we
+                can!</strong> - and this tool (or toy?) can help.</p>
+        <p>This <em>N-Body Simulation</em> started its life as my final project for CU Boulder's ASTR 2600: Introduction
+            to Scientific Programming, but back then I didn't know what I was doing or how to do it, at least as far as
+            useful programs go. So I decided to give that old IPython notebook a facelift and turn it into something
+            others could experience and (hopefully) learn from.</p>
+        <h2>Installation</h2>
+        <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a
+                href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will
+            exist as an app instead of a series of scripts and modules that exist separately. For now, provided you have
+            access to a Unix-like command line, you can run <code>pip3 install -r requirements.txt</code>. You'll also
+            have to <a href="https://www.ffmpeg.org/download.html">install ffmpeg,</a> a multimedia framework.</p>
+        <p>Once you have everything installed, you can <em>finally</em> run the program with
+            <code>python3 main.py</code>. This will start the command line interface (or CLI, once you get to know it
+            better).
+        </p>
 
-    <h2>Simulations</h2>
-    <h3>Sun-Earth</h3>
-    <h3>Sun-Earth-Moon</h3>
-    <h3>Kepler-16</h3>
-    <h3>Random Cube of Bodies</h3>
-    <h3>Uniform Cube of Bodies</h3>
-    <h3>Pythagorean System</h3>
-    <h3>Figure 8</h3>
-    <h3></h3>
-</body>
+        <h2>Use</h2>
+        You will first be greeted by some text introducing you to the program.
+        <video src="media/intro.mov" loop autoplay>Sorry, your browser doesn't support embedded videos.</video>
+        <p>After you get through all that info (still trying to decide if it's worth it to keep all that there...) you
+            are taken to the meat of the app: a menu detailing the available systems for you to screw around with.</p>
+        <img src="media/menu.png" alt="A menu system">
+        <h2>Simulations</h2>
+        <h3>Sun-Earth</h3>
+        <p>Here is the first and most basic of the simulations: it's just the Sun and the Earth! And because I haven't
+            coded in any sort of friction or otherwise resistive forces, nothing is changing! There is one issue though
+            - the Sun should be the same color (based on distance from (0,0,0)) in the scatter plots and the kinetic
+            energy line plot, but it isn't! <a href="https://github.com/collinsinclair/N-Body-Improved/issues/18">Feel
+                free to fix it if you know how ;)</a></p>
+        <video src="media/SunEarth_2021-11-13-01-44-57.mp4" loop autoplay controls></video>
+        <h3>Sun-Earth-Moon</h3>
+        <p>You really can't even tell the Moon is there, and that's because it's inside the Earth. No, really! The dots
+            are scaled by mass, but I set an absolute minimum size so that all particle/bodies would be visible from the
+            outset. This fact, combined with the (literal) astronomical scales in the Sun-Earth-Moon system put the Moon
+            inside of the Earth in the plot.</p>
+        <video src="media/SunEarthMoon_2021-11-13-01-46-40.mp4" loop autoplay controls></video>
+        <h3>Kepler-16</h3>
+        <p>From Wikipedia, "Kepler-16 is an <a href="https://en.wikipedia.org/wiki/Eclipsing_binary">eclipsing binary
+                star</a> system in the constellation of Cygnus that was targeted by the <a
+                href="https://en.wikipedia.org/wiki/Kepler_(spacecraft)">Kepler spacecraft</a>. Both stars are smaller
+            than the Sun; the primary, Kepler-16A, is a K-type <a
+                href="https://en.wikipedia.org/wiki/Main_sequence">main-sequence</a> star and the secondary, Kepler-16B,
+            is an M-type <a href="https://en.wikipedia.org/wiki/Red_dwarf">red dwarf.</a> They are separated by 0.22 AU,
+            and complete an orbit around a common center of mass every 41 days."</p>
+        <p>I think the interesting feature illustrated by this simulation is that all three bodies seem to be orbiting
+            <em>nothing</em>! Of course, this is not the case - they are orbiting the <em>barycenter</em>, the center of
+            mass of the three bodies. Specifically, notice the planet (small yellow outer dot) that is orbiting in a
+            perfect circle around this point - almost un-perturbed by the stars! Its kinetic energy is staying constant
+            (and low, relative to the stars, due to its extremely small mass) throughout this orbit.
+        </p>
+        <p>FInally, notice that the stars are in a pattern of falling towards each other and then falling past each
+            other, speeding them up and slowing them down together. This is illustrated in the kinetic energy plot as
+            both oscillate simultaneously.</p>
+        <video src="media/Kepler16_2021-11-13-01-48-46.mp4" loop autoplay controls></video>
+        <h3>Random Cube of Bodies</h3>
+        <p>This simulation is the first example of things that can go terribly wrong in numerical computation. Almost
+            immediately, two of the bodies in the cube collide (more or less, i.e., they fling past each other), sending
+            them off into space at exceptionally high velocities. This isn't entirely unphysical, but what we're seeing
+            here is the force of gravity going through the roof (remember, gravitation force is inversely proportional
+            the the square of separation - this means that when objects get very close, gravity gets very large). The
+            "course" timestep of the simulation (0.5 days) allowed for the close approach and slingshot phenomenon, but
+            in the next step the objects were already so far separated that they weren't going to be slowed down by
+            gravity (again, at large distances gravity gets very small). This is what resulted in the apparent creation
+            of energy (and lots of it), as well as the system becoming almost unobservable as those two bodies get
+            further and further away from the center of the system.</p>
+        <p>I think this is a good time to acknowledge the work of a close friend of mine who has contributed some
+            amazing work to this project. First, he coded the "perspective" effect where the particles get smaller as
+            the bounds increase to keep everything in frame - a much better visualization than I initially had. Also, he
+            wrote a version of the calculations that use <em>adaptive time steps</em>, a way to reduce these
+            non-physical phenomena. I haven't included this improvement quite yet, as there are still some kinks to iron
+            out. Either way, his work has helped to elevate this project to the next level, and I am thankful that he
+            has decided to lend me some of his genius on all of this.</p>
+        <video src="media/RandomCube_2021-11-13-01-50-30.mp4" loop autoplay controls></video>
+        <h3>Uniform Cube of Bodies</h3>
+        <p>Here we see another slingshot phenomenon, something that could be fixed by an adaptive time step process as
+            mentioned above, or by simply using smaller constant time steps. In the video below, I used a time step of
+            0.5 days.</p>
+        <video src="media/UniformCube_2021-11-13-01-53-14.mp4" loop autoplay controls></video>
+        <p>Now let's use a finer time step and see how the result change (and since this system isn't randomly
+            generated, the results are a true testament to the power - and shortcomings - of numerical integration).</p>
+        <h3>Pythagorean System</h3>
+        <p>I absolutely love how this one shows the slingshotting with more-or-less correct "deceleration" afterwards.
+            The simulation starts with all three particles accelerating towards each other, then we see the two close
+            encounters fling the particles off into space, and finally we see everything get pulled back
+            gravitationally, slowing everything down appropriately. It almost appears as if the particles will fall back
+            towards each other, but alas. They have successfully <a
+                href="https://en.wikipedia.org/wiki/Escape_velocity">escaped</a> each other's gravity. Beautiful!</p>
+        <video src="media/Pythagorean_2021-11-13-03-20-22.mp4" loop autoplay controls></video>
+        <h3>Figure 8</h3>
+        <p>A classic example of N-body choreography, the obscure art of finding perfectly periodic N-body solutions.</p>
+        <video src="media/Figure8_2021-11-13-01-58-19.mp4" loop autoplay controls></video>
+        <h3>Planetesimal Disk</h3>
+        <p>Everyone's favorite. There are lots of things to talk about here! First, I used the default parameters to
+            simulate a planetesimal disk with 30 bodies over the course of a year (with a timestep of 0.5 days). The
+            particles have a small but noticeable z-velocity - this is what causes the disk to not be perfectly flat.
+        </p>
+        <p>Notice that the star in the middle has a small and constant kinetic energy; while it is ultra-massive, it's
+            also barely moving and thus has almost no KE. Then, the outer-most planets have the next smallest KE, which
+            makes sense because they moe the slowest (as described by <a
+                href="https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion#Second_law">Kepler's second
+                law</a>). As we look at particles closer to the host star, we see increasing kinetic energies (which is
+            proportional to the square of a body's velocity).</p>
+        <p>I should mention that in this first simulation, the mass of the planets is around one ten-billionth that of
+            the host star, so the star's gravity is completely dominating the system. At a mass ratio of above around
+            one millionth, we see the planets' gravity begin to have more noticeable effects, as shown in the second
+            video below.</p>
+        <video src="media/PlanetesimalDisk_2021-11-13-02-01-07.mp4" loop autoplay controls></video>
+        <p>The exact same initial conditions <em>except</em> that planets are now only one one-thousandth the mass of
+            the host star (this is ten million times more massive as in the video above). Notice how much more chaotic
+            this system is - plants are swapping places left and right and a few even get ejected from the system
+            entirely!</p>
+        <video src="media/PlanetesimalDisk_2021-11-13-03-12-00.mp4" loop autoplay controls></video>
+        <p>Finally, let's see what happens when we increase that z-velocity by a factor of ten from the previous two
+            simulations.</p>
+        <video src="media/PlanetesimalDisk_2021-11-13-03-21-09.mp4" loop autoplay controls></video>
+        <p>Perhaps intuitively, all of the planets start with a higher KE than before (because they have a significantly
+            higher initial velocity!). We see two planets migrate outwards and slow down as they are tugged on by the
+            gravity of the host star. The others seem to continue doing their thing as time goes on. Amazing!</p>
+        <h3>Tiny Cluster</h3>
+        <video src="media/TinyCluster_2021-11-13-02-03-53.mp4" loop autoplay controls></video>
+    </body>
 </html>
