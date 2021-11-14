@@ -98,10 +98,10 @@ def faketypeSystemMenu():
 
 def faketypeOptions(chooseN=False, defaultN=0):
     faketype("""
-DURATION and TIMESTEP
-The duration specifies the amount of time the simulation runs. The timestep specifies the amount of time over which to \"nudge\" the particles in each step of the numerical integration. A smaller time step leads to a longer calculation time but gives more accurate results.""")
+DURATION, TIMESTEP, SAMPLINGRATE, and SPEED
+The duration specifies the amount of time the simulation runs. The timestep specifies the amount of time over which to \"nudge\" the particles in each step of the numerical integration. A smaller time step leads to a longer calculation time but gives more accurate results. The sampling rate determines how many steps are skipped between video frames. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of video per year in simulation.""")
     choice = input("""Would you like to
-    (1) use the defaults (1 year, 0.5 days) or
+    (1) use the defaults (1 year, 0.5 days, 1 step/frame, 1x speed) or
     (2) enter your own?
 Enter a 1 or 2: """)
     while choice != "1" and choice != "2":
@@ -110,10 +110,14 @@ Enter a 1 or 2: """)
     if choice == "1":
         duration = 365 * 24 * 60 * 60  # 1 year
         timestep = 60 * 60 * 24 * 0.5  # 0.5 days
+        samplingrate = 1
+        speed = 1
     else:
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
         timestep = float(input("Enter a time step in days: ")) * (60 * 60 * 24)
+        samplingrate = int(input("Enter an integer number of steps per frame: "))
+        speed = int(input("Enter a speed multiplier: "))
     if chooseN:
         faketype(f"""
 NUMBER OF PARTICLES""")
@@ -129,7 +133,7 @@ Enter a 1 or a 2: """)
             n = int(input("Enter the number of particles: "))
     else:
         n = 0
-    return duration, timestep, n
+    return duration, timestep, samplingrate, speed, n
 
 
 def faketypeVelScatter(default=0):
@@ -208,58 +212,58 @@ Enter a 1 or a 2: """)
 
 def simulateSunEarth():
     masses, positions, velocities = systems.SunEarth()
-    duration, dt, n = faketypeOptions()
-    return masses, positions, velocities, duration, dt
+    duration, dt, samplingrate, speed, n = faketypeOptions()
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateSunEarthMoon():
     masses, positions, velocities = systems.SunEarthMoon()
-    duration, dt, n = faketypeOptions()
-    return masses, positions, velocities, duration, dt
+    duration, dt, samplingrate, speed, n = faketypeOptions()
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateKepler16():
     masses, positions, velocities = systems.Kepler16()
-    duration, dt, n = faketypeOptions()
-    return masses, positions, velocities, duration, dt
+    duration, dt, samplingrate, speed, n = faketypeOptions()
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateRandomCube():
-    duration, dt, n = faketypeOptions(chooseN=True, defaultN=30)
+    duration, dt, samplingrate, speed, n = faketypeOptions(chooseN=True, defaultN=30)
     if n == 0:
         n = 30
     velScatter = faketypeVelScatter(2000)
     if velScatter == 0:
         velScatter = 2000
     masses, positions, velocities = systems.randomCube(n, velScatter)
-    return masses, positions, velocities, duration, dt
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateUniformCube():
-    duration, dt, n = faketypeOptions(True, 16)
+    duration, dt, samplingrate, speed, n = faketypeOptions(True, 16)
     if n == 0:
         n = 16
     velScatter = faketypeVelScatter(5000)
     if velScatter == 0:
         velScatter = 5000
     masses, positions, velocities = systems.uniformCube(n, velScatter)
-    return masses, positions, velocities, duration, dt
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulatePythagorean():
     masses, positions, velocities = systems.pythagorean()
-    duration, dt, n = faketypeOptions()
-    return masses, positions, velocities, duration, dt
+    duration, dt, samplingrate, speed, n = faketypeOptions()
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateFigure8():
     masses, positions, velocities = systems.figure8()
-    duration, dt, n = faketypeOptions()
-    return masses, positions, velocities, duration, dt
+    duration, dt, samplingrate, speed, n = faketypeOptions()
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulatePlanetesimalDisk():
-    duration, dt, n = faketypeOptions(True, 30)
+    duration, dt, samplingrate, speed, n = faketypeOptions(True, 30)
     if n == 0:
         n = 30
     massRatio = faketypeMassRatios(1e-10)
@@ -270,18 +274,18 @@ def simulatePlanetesimalDisk():
         zVel = 1000
     masses, positions, velocities = systems.planetesimalDisk(
         n, massRatio, zVel)
-    return masses, positions, velocities, duration, dt
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def simulateTinyCluster():
-    duration, dt, n = faketypeOptions(True, 20)
+    duration, dt, samplingrate, speed, n = faketypeOptions(True, 20)
     if n == 0:
         n = 20
     maxMass = faketypeMaxMass(0.01*1.989e30)
     if maxMass == 0:
         maxMass = 0.01 * 1.989e30
     masses, positions, velocities = systems.tinyCluster(n, maxMass)
-    return masses, positions, velocities, duration, dt
+    return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
 def selectSystem():
@@ -357,9 +361,9 @@ def main():
     while cont:
         # clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        (masses, positions, velocities, duration, dt), name = selectSystem()
+        (masses, positions, velocities, duration, dt, samplingrate, speed), name = selectSystem()
         faketype("--------------------")
-        leapfrog.animate(masses, positions, velocities, duration, dt, name)
+        leapfrog.animate(masses, positions, velocities, duration, dt, samplingrate, speed, name)
         cont = input("Would you like to run another simulation? (y/n) ")
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")

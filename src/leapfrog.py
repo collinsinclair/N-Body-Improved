@@ -78,7 +78,7 @@ def calculatePEs(masses, positions, velocities):
     return tot
 
 
-def animate(masses, positions, velocities, duration, dt, name):
+def animate(masses, positions, velocities, duration, dt, samplingrate, speed, name):
 
     # make sure the three input arrays have consistent shapes
     nParticles, nDimensions = positions.shape
@@ -93,7 +93,7 @@ def animate(masses, positions, velocities, duration, dt, name):
     # Determine the framerate that results in one year in the simulation taking 15 seconds
     oneyear = 15
     dt_in_days = dt / 86400
-    fps_ = round(365 / (oneyear*dt_in_days))
+    fps_ = round(speed * 365 / (oneyear*dt_in_days*samplingrate))
 
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
@@ -137,87 +137,86 @@ def animate(masses, positions, velocities, duration, dt, name):
         for i in tqdm(range(len(timeInDays))):
             positions, velocities = updateParticles(
                 masses, positions, velocities, dt)
-
-            distances = np.array([forces.magnitude(positions[k])
-                                  for k in range(nParticles)])
-            normed_distances = distances / np.max(distances)
-
             KEs[:, i] = calculateKEs(
-                masses, positions, velocities)
+                    masses, positions, velocities)
+            if i%samplingrate == 0:
+                distances = np.array([forces.magnitude(positions[k])
+                                      for k in range(nParticles)])
+                normed_distances = distances / np.max(distances)
 
-            # this whole business keeps the axes on the same scale and (0,0,0) in the center
-            bound = max([np.abs(np.max(distances)), np.abs(
-                np.min(distances)), max_distance_prev])
-            bound *= 1.1  # add a little padding
+                # this whole business keeps the axes on the same scale and (0,0,0) in the center
+                bound = max([np.abs(np.max(distances)), np.abs(
+                    np.min(distances)), max_distance_prev])
+                bound *= 1.1  # add a little padding
 
-            isometric.clear()
-            isometric.set_xlabel("x")
-            isometric.set_ylabel("y")
-            isometric.set_zlabel("z")
-            isometric.set_xlim(-bound, bound)
-            isometric.set_ylim(-bound, bound)
-            isometric.set_zlim(-bound, bound)
-            isometric.grid(False)
-            isometric.facecolor = 'black'
-            isometric.set_xticks([])
-            isometric.set_yticks([])
-            isometric.set_zticks([])
-            isometric.xaxis.pane.fill = False
-            isometric.yaxis.pane.fill = False
-            isometric.zaxis.pane.fill = False
-            isometric.xaxis.pane.set_edgecolor('k')
-            isometric.yaxis.pane.set_edgecolor('k')
-            isometric.zaxis.pane.set_edgecolor('k')
-            sizes = initial_sizes * (initial_scale/bound)**2
-            isometric.scatter(positions[:, 0], positions[:, 1],
-                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)  # , alpha=0.8) # the 3d plotting uses variable alphas to show depth
+                isometric.clear()
+                isometric.set_xlabel("x")
+                isometric.set_ylabel("y")
+                isometric.set_zlabel("z")
+                isometric.set_xlim(-bound, bound)
+                isometric.set_ylim(-bound, bound)
+                isometric.set_zlim(-bound, bound)
+                isometric.grid(False)
+                isometric.facecolor = 'black'
+                isometric.set_xticks([])
+                isometric.set_yticks([])
+                isometric.set_zticks([])
+                isometric.xaxis.pane.fill = False
+                isometric.yaxis.pane.fill = False
+                isometric.zaxis.pane.fill = False
+                isometric.xaxis.pane.set_edgecolor('k')
+                isometric.yaxis.pane.set_edgecolor('k')
+                isometric.zaxis.pane.set_edgecolor('k')
+                sizes = initial_sizes * (initial_scale/bound)**2
+                isometric.scatter(positions[:, 0], positions[:, 1],
+                                  positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)
 
-            xz_plane.clear()
-            xz_plane.set_xlabel("x")
-            xz_plane.set_ylabel("z")
-            xz_plane.set_xlim(-bound, bound)
-            xz_plane.set_ylim(-bound, bound)
-            xz_plane.grid(False)
-            xz_plane.facecolor = 'black'
-            xz_plane.set_xticks([])
-            xz_plane.set_yticks([])
-            xz_plane.scatter(positions[:, 0], positions[:, 2],
-                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+                xz_plane.clear()
+                xz_plane.set_xlabel("x")
+                xz_plane.set_ylabel("z")
+                xz_plane.set_xlim(-bound, bound)
+                xz_plane.set_ylim(-bound, bound)
+                xz_plane.grid(False)
+                xz_plane.facecolor = 'black'
+                xz_plane.set_xticks([])
+                xz_plane.set_yticks([])
+                xz_plane.scatter(positions[:, 0], positions[:, 2],
+                                 s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
-            xy_plane.clear()
-            xy_plane.set_xlabel("x")
-            xy_plane.set_ylabel("y")
-            xy_plane.set_xlim(-bound, bound)
-            xy_plane.set_ylim(-bound, bound)
-            xy_plane.grid(False)
-            xy_plane.facecolor = 'black'
-            xy_plane.set_xticks([])
-            xy_plane.set_yticks([])
-            xy_plane.scatter(positions[:, 0], positions[:, 1],
-                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)  # TODO why does this not show the same color as the other plots?
+                xy_plane.clear()
+                xy_plane.set_xlabel("x")
+                xy_plane.set_ylabel("y")
+                xy_plane.set_xlim(-bound, bound)
+                xy_plane.set_ylim(-bound, bound)
+                xy_plane.grid(False)
+                xy_plane.facecolor = 'black'
+                xy_plane.set_xticks([])
+                xy_plane.set_yticks([])
+                xy_plane.scatter(positions[:, 0], positions[:, 1],
+                                 s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
-            ke_2d.clear()
-            for j in range(KEs.shape[0]):
-                ke_2d.plot(timeInDays[:i], KEs[j, :i],
-                           c=new_cmap(normed_distances[j]))
-                ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
-                ke_2d.set_xlabel("Time")
-                ke_2d.set_ylabel("Kinetic Energy")
-                ke_2d.set_xticks([])
-                ke_2d.set_yticks([])
-            fig.suptitle(f'{name} at {timeInDays[i]:.1f} Days')
-            fig.tight_layout()
-            wri.grab_frame()
+                ke_2d.clear()
+                for j in range(KEs.shape[0]):
+                    ke_2d.plot(timeInDays[:i], KEs[j, :i],
+                               c=new_cmap(normed_distances[j]))
+                    ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
+                    ke_2d.set_xlabel("Time")
+                    ke_2d.set_ylabel("Kinetic Energy")
+                    ke_2d.set_xticks([])
+                    ke_2d.set_yticks([])
+                fig.suptitle(f'{name} at {timeInDays[i]:.1f} Days')
+                fig.tight_layout()
+                wri.grab_frame()
 
-            # # if 5 seconds have passed, print a space fact
-            # if i == 0:
-            #     lastLineRead = 0
-            # if (datetime.datetime.now() - last).seconds > 10:
-            #     # if the line has not been read yet, read it
-            #     if lastLineRead < len(lines):
-            #         print(lines[lastLineRead])
-            #         lastLineRead += 1
-            #     last = datetime.datetime.now()
+                # # if 5 seconds have passed, print a space fact
+                # if i == 0:
+                #     lastLineRead = 0
+                # if (datetime.datetime.now() - last).seconds > 10:
+                #     # if the line has not been read yet, read it
+                #     if lastLineRead < len(lines):
+                #         print(lines[lastLineRead])
+                #         lastLineRead += 1
+                #     last = datetime.datetime.now()
 
         wri.finish()
         print("Finishing up...")
