@@ -30,84 +30,33 @@ def faketype(words, speed=0.001, newline=True):
         print("")
     return ""
 
-def updateParticle(masses, positions, velocities, dt, i):
-    force = forces.calculateForceVector(masses, positions, i, positions[i])
-    acceleration = force/masses[i]
-    nudge = velocities[i]*dt + 0.5 * acceleration*dt**2
-    pnudge, vnudge = updateParticleRecursive(masses, positions, velocities, dt, i, nudge, positions[i], velocities[i])
-    return (positions[i] + pnudge), (velocities[i] + vnudge)
+def updateParticles(masses, positions, velocities, dt):
+    nParticles, nDimensions = positions.shape
+    force = forces.calculateForceVectors(masses, positions)
+    acceleration = force/np.array(masses).reshape(nParticles, 1)
+    nudge = velocities*dt + 0.5 * acceleration*dt**2
+    pnudge, vnudge = updateParticlesRecursive(masses, positions, velocities, dt, nudge)
+    return (positions + pnudge), (velocities + vnudge)
 
 
-def updateParticleRecursive(masses, positions, velocities, dt, i, prev, position, velocity):
-    startingPositions = np.array(positions)
-    startingVelocities = np.array(velocities)
-
-    force1 = forces.calculateForceVector(masses, positions, i, position)
-    acceleration1 = force1/masses[i]
-    nudge1 = velocity*(dt/2) + 0.5 * acceleration1*(dt/2)**2
-    force2 = forces.calculateForceVector(masses, positions, i, position+nudge1)
-    acceleration2 = force2/masses[i]
+def updateParticlesRecursive(masses, positions, velocities, dt, prev):
+    nParticles, nDimensions = positions.shape
+    force1 = forces.calculateForceVectors(masses, positions)
+    acceleration1 = force1/np.array(masses).reshape(nParticles, 1)
+    nudge1 = velocities*(dt/2) + 0.5 * acceleration1*(dt/2)**2
+    force2 = forces.calculateForceVectors(masses, positions+nudge1)
+    acceleration2 = force2/np.array(masses).reshape(nParticles, 1)
     vnudge1 = 0.5*(acceleration1+acceleration2)*(dt/2)
-    nudge2 = (velocity + vnudge1)*(dt/2) + 0.5 * acceleration2*(dt/2)**2
-    force3 = forces.calculateForceVector(masses, positions, i, position+nudge1+nudge2)
-    acceleration3 = force3/masses[i]
+    nudge2 = (velocities + vnudge1)*(dt/2) + 0.5 * acceleration2*(dt/2)**2
+    force3 = forces.calculateForceVectors(masses, positions+nudge1+nudge2)
+    acceleration3 = force3/np.array(masses).reshape(nParticles, 1)
     vnudge2 = 0.5*(acceleration2+acceleration3)*(dt/2)
-
-    if forces.magnitude(nudge1+nudge2-prev)/forces.magnitude(nudge1+nudge2) > 0.01:
-        print("IMPROVED")
-        Nnudge1, Nvnudge1 = updateParticleRecursive(masses, positions, velocities, dt/2, i, nudge1, position, velocity)
-        Nnudge2, Nvnudge2 = updateParticleRecursive(masses, positions, velocities, dt/2, i, nudge1+nudge2-Nnudge1, position+Nnudge1, velocity+Nvnudge1)
+    if max([forces.magnitude(nudge1[i]+nudge2[i]-prev[i])/forces.magnitude(nudge1[i]+nudge2[i]) for i in range(nParticles)]) > 0.01:
+        Nnudge1, Nvnudge1 = updateParticlesRecursive(masses, positions, velocities, dt/2, nudge1)
+        Nnudge2, Nvnudge2 = updateParticlesRecursive(masses, positions+Nnudge1, velocities+Nvnudge1, dt/2, nudge1+nudge2-Nnudge1)
         return (Nnudge1+Nnudge2), (Nvnudge1+Nvnudge2)
     else:
         return (nudge1+nudge2), (vnudge1+vnudge2)
-
-
-
-
-
-
-def updateParticles(masses, positions, velocities, dt):
-    """
-    Evolve particles in time via leap-frog integrator scheme. This function
-    takes masses, positions, velocities, and a time step dt as
-
-    Parameters
-    ----------
-    masses : np.ndarray
-        1-D array containing masses for all particles, in kg
-        It has length N, where N is the number of particles.
-    positions : np.ndarray
-        2-D array containing (x, y, z) positions for all particles.
-        Shape is (N, 3) where N is the number of particles.
-    velocities : np.ndarray
-        2-D array containing (x, y, z) velocities for all particles.
-        Shape is (N, 3) where N is the number of particles.
-    dt : float
-        Evolve system for time dt (in seconds).
-
-    Returns
-    -------
-    Updated particle positions and particle velocities, each being a 2-D
-    array with shape (N, 3), where N is the number of particles.
-
-    """
-
-    endingPositions = np.array(positions).copy()
-    endingVelocities = np.array(velocities).copy()
-
-    # how many particles are there?
-    nParticles, nDimensions = endingPositions.shape
-
-    # make sure the three input arrays have consistent shapes
-    assert(endingVelocities.shape == endingPositions.shape)
-    assert(len(masses) == nParticles)
-
-    for i in range(nParticles):
-        position, velocity = updateParticle(masses, positions, velocities, dt, i)
-        endingPositions[i] = position
-        endingVelocities[i] = velocity
-
-    return endingPositions, endingVelocities
 
 
 def calculateKEs(masses, positions, velocities):
