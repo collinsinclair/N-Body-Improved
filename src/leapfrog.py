@@ -30,33 +30,45 @@ def faketype(words, speed=0.001, newline=True):
         print("")
     return ""
 
-def updateParticles(masses, positions, velocities, dt):
+def calculateAcceleration(masses, positions):
     nParticles, nDimensions = positions.shape
     force = forces.calculateForceVectors(masses, positions)
     acceleration = force/np.array(masses).reshape(nParticles, 1)
-    nudge = velocities*dt + 0.5 * acceleration*dt**2
-    pnudge, vnudge = updateParticlesRecursive(masses, positions, velocities, dt, nudge)
-    return (positions + pnudge), (velocities + vnudge)
+    return acceleration
+
+def rungekutta(masses, positions, velocities, dt):
+    nParticles, nDimensions = positions.shape
+    kv = np.zeros((4, nParticles, nDimensions))
+    kr = np.zeros((4, nParticles, nDimensions))
+    kv[0] = calculateAcceleration(masses, positions)
+    kr[0] = velocities
+    kv[1] = calculateAcceleration(masses, positions+kr[0]*dt/2)
+    kr[1] = velocities + kv[0]*dt/2
+    kv[2] = calculateAcceleration(masses, positions+kr[1]*dt/2)
+    kr[2] = velocities + kv[1]*dt/2
+    kv[3] = calculateAcceleration(masses, positions+kr[2]*dt)
+    kr[3] = velocities + kv[2]*dt
+    nv = dt/6*(kv[0] + 2*kv[1] + 2*kv[2] + kv[3])
+    nr = dt/6*(kr[0] + 2*kr[1] + 2*kr[2] + kr[3])
+    return nr, nv
+
+
+def updateParticles(masses, positions, velocities, dt):
+    nr, nv = rungekutta(masses, positions, velocities, dt)
+    nr, nv = updateParticlesRecursive(masses, positions, velocities, dt, nr)
+    return (positions + nr), (velocities + nv)
 
 
 def updateParticlesRecursive(masses, positions, velocities, dt, prev):
     nParticles, nDimensions = positions.shape
-    force1 = forces.calculateForceVectors(masses, positions)
-    acceleration1 = force1/np.array(masses).reshape(nParticles, 1)
-    nudge1 = velocities*(dt/2) + 0.5 * acceleration1*(dt/2)**2
-    force2 = forces.calculateForceVectors(masses, positions+nudge1)
-    acceleration2 = force2/np.array(masses).reshape(nParticles, 1)
-    vnudge1 = 0.5*(acceleration1+acceleration2)*(dt/2)
-    nudge2 = (velocities + vnudge1)*(dt/2) + 0.5 * acceleration2*(dt/2)**2
-    force3 = forces.calculateForceVectors(masses, positions+nudge1+nudge2)
-    acceleration3 = force3/np.array(masses).reshape(nParticles, 1)
-    vnudge2 = 0.5*(acceleration2+acceleration3)*(dt/2)
-    if max([forces.magnitude(nudge1[i]+nudge2[i]-prev[i])/forces.magnitude(nudge1[i]+nudge2[i]) for i in range(nParticles)]) > 0.01:
-        Nnudge1, Nvnudge1 = updateParticlesRecursive(masses, positions, velocities, dt/2, nudge1)
-        Nnudge2, Nvnudge2 = updateParticlesRecursive(masses, positions+Nnudge1, velocities+Nvnudge1, dt/2, nudge1+nudge2-Nnudge1)
-        return (Nnudge1+Nnudge2), (Nvnudge1+Nvnudge2)
+    nr1, nv1 = rungekutta(masses, positions, velocities, dt/2)
+    nr2, nv2 = rungekutta(masses, positions + nr1, velocities + nv1, dt/2)
+    if max([forces.magnitude(nr1[i]+nr2[i]-prev[i])/forces.magnitude(nr1[i]+nr2[i]) for i in range(nParticles)]) > 0.01:
+        Nnr1, Nnv1 = updateParticlesRecursive(masses, positions, velocities, dt/2, nr1)
+        Nnr2, Nnv2 = updateParticlesRecursive(masses, positions+Nnr1, velocities+Nnv1, dt/2, nr1+nr2-Nnr1)
+        return (Nnr1+Nnr2), (Nnv1+Nnv2)
     else:
-        return (nudge1+nudge2), (vnudge1+vnudge2)
+        return (nr1+nr2), (nv1+nv2)
 
 
 def calculateKEs(masses, positions, velocities):
