@@ -88,8 +88,7 @@ def calculate_potential_energies(masses, positions):
     for i in range(n):
         for j in range(n):
             if i != j:
-                tot[i] -= 6.67e-11 * masses[j] / \
-                          forces.magnitude(positions[i] - positions[j])
+                tot[i] -= 6.67e-11 * masses[j] / forces.magnitude(positions[i] - positions[j])
     return tot
 
 
@@ -148,7 +147,7 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
 
         for i in tqdm(range(len(times_in_days))):
             positions, velocities = update_particles(masses, positions, velocities, dt)
-            kinetic_energies[:, i] = calculate_kinetic_energies(masses, positions)
+            kinetic_energies[:, i] = calculate_kinetic_energies(masses, velocities)
             if i % samplingrate == 0:
                 distances = np.array([forces.magnitude(positions[k])
                                       for k in range(n_particles)])
