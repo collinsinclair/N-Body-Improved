@@ -1,6 +1,6 @@
 # N-Body-Improved
 
-by Collin Sinclair
+by Collin Sinclair and Brandon Korb
 
 ----------
 Welcome to my new-and-improved N-Body Simulation application! This command line-based app will walk you through selecting a customizing an N-body simulation of any of the following varieties:
