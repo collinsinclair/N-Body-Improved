@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="65e09920-16ae-4fd1-944b-e2b7a457cb0d" name="Changes" comment="">
+    <list default="true" id="65e09920-16ae-4fd1-944b-e2b7a457cb0d" name="Changes" comment="refactored signature and symbol names">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rungekatta.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rungekatta.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +27,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -48,8 +48,17 @@
       <option name="presentableId" value="Default" />
       <updated>1637009617471</updated>
       <workItem from="1637009620351" duration="5339000" />
-      <workItem from="1637015756628" duration="1248000" />
+      <workItem from="1637015756628" duration="1344000" />
+      <workItem from="1637017625007" duration="8000" />
     </task>
+    <task id="LOCAL-00001" summary="refactored signature and symbol names">
+      <created>1637017542070</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1637017542070</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -66,5 +75,9 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="refactored signature and symbol names" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactored signature and symbol names" />
   </component>
 </project>

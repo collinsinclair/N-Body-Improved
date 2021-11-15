@@ -130,6 +130,7 @@ dmypy.json
 
 .DS_Store
 main.ipynb
-.vscode/settings.json
+.vscode
 main.py
 videos
+.idea
