@@ -208,7 +208,7 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
                 fig.tight_layout()
                 wri.grab_frame()
 
-                # # if 5 seconds have passed, print a space fact
+                # # if 10 seconds have passed, print a space fact
                 # if i == 0:
                 #     lastLineRead = 0
                 # if (datetime.datetime.now() - last).seconds > 10:
