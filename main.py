@@ -54,7 +54,7 @@ def faketypeIntro():
     input(faketype(
         "This program simulates the time evolution of various gravitational systems like the Sun and Moon, a planetesimal disk, or a star cluster. [return]", newline=False))
     input(faketype(
-        "The simulation is based on the Leapfrog method, which is a numerical method for solving the equations of motion of a system of particles. [return]", newline=False))
+        "The simulation uses a Runge-Katta Method, a iterative numerical method which we apply to the equations of motion of a system of particles. [return]", newline=False))
     input(faketype("""Each system has parameters that you can change to modify the simulation, which include
     - the total duration (how long the simulation runs)
     - the time step (the simulation time between calculations - smaller = smoother and more accurate, but takes longer)
@@ -116,7 +116,8 @@ Enter a 1 or 2: """)
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
         timestep = float(input("Enter a time step in days: ")) * (60 * 60 * 24)
-        samplingrate = int(input("Enter an integer number of steps per frame: "))
+        samplingrate = int(
+            input("Enter an integer number of steps per frame: "))
         speed = int(input("Enter a speed multiplier: "))
     if chooseN:
         faketype(f"""
@@ -229,7 +230,8 @@ def simulateKepler16():
 
 
 def simulateRandomCube():
-    duration, dt, samplingrate, speed, n = faketypeOptions(chooseN=True, defaultN=30)
+    duration, dt, samplingrate, speed, n = faketypeOptions(
+        chooseN=True, defaultN=30)
     if n == 0:
         n = 30
     velScatter = faketypeVelScatter(2000)
@@ -361,9 +363,11 @@ def main():
     while cont:
         # clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        (masses, positions, velocities, duration, dt, samplingrate, speed), name = selectSystem()
+        (masses, positions, velocities, duration, dt,
+         samplingrate, speed), name = selectSystem()
         faketype("--------------------")
-        leapfrog.animate(masses, positions, velocities, duration, dt, samplingrate, speed, name)
+        leapfrog.animate(masses, positions, velocities,
+                         duration, dt, samplingrate, speed, name)
         cont = input("Would you like to run another simulation? (y/n) ")
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
