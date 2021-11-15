@@ -19,6 +19,16 @@
             to Scientific Programming, but back then I didn't know what I was doing or how to do it, at least as far as
             useful programs go. So I decided to give that old IPython notebook a facelift and turn it into something
             others could experience and (hopefully) learn from.</p>
+        <p>But wait, what <em>is</em> an N-Body simulation? First, it's worth discussing something called the "N-Body
+            Problem" - a historically difficult problem to solve by hand. Given the current understanding of orbital
+            mechanics (how gravitationally bound objects move in space), finding an analytical (i.e., <em>not</em>
+            step-by-step)
+            solution for the motion of a three body gravitational system is incredibly tricky. The beauty of programming
+            a computer to do this work for us is that we don't need an analytical solution - we can have the computer
+            run the process step-by-step to show us a "really good" approximation of the motion of the bodies. That is
+            exactly what this program is doing, and that is the essence of an N-Body simulation. Read more about the <a
+                href="https://en.wikipedia.org/wiki/N-body_problem">N-Body Problem</a> or <a
+                href="https://en.wikipedia.org/wiki/N-body_simulation">N-Body Simulations</a>.</p>
         <h2>Installation</h2>
         <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a
                 href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will
@@ -36,20 +46,18 @@
         <p>After you get through all that info (still trying to decide if it's worth it to keep all that there...) you
             are taken to the meat of the app: a menu detailing the available systems for you to screw around with.</p>
         <img src="media/menu.png" alt="A menu system">
+
         <h2>Simulations</h2>
         <h3>Sun-Earth</h3>
         <p>Here is the first and most basic of the simulations: it's just the Sun and the Earth! And because I haven't
-            coded in any sort of friction or otherwise resistive forces, nothing is changing! There is one issue though
-            - the Sun should be the same color (based on distance from (0,0,0)) in the scatter plots and the kinetic
-            energy line plot, but it isn't! <a href="https://github.com/collinsinclair/N-Body-Improved/issues/18">Feel
-                free to fix it if you know how ;)</a></p>
-        <video src="media/SunEarth_2021-11-13-01-44-57.mp4" loop autoplay controls></video>
+            coded in any sort of friction or otherwise resistive forces, nothing is changing!</p>
+        <video src="media/SunEarth_2021-11-15-12-38-03.mp4" loop autoplay controls></video>
         <h3>Sun-Earth-Moon</h3>
         <p>You really can't even tell the Moon is there, and that's because it's inside the Earth. No, really! The dots
             are scaled by mass, but I set an absolute minimum size so that all particle/bodies would be visible from the
             outset. This fact, combined with the (literal) astronomical scales in the Sun-Earth-Moon system put the Moon
             inside of the Earth in the plot.</p>
-        <video src="media/SunEarthMoon_2021-11-13-01-46-40.mp4" loop autoplay controls></video>
+        <video src="media/SunEarthMoon_2021-11-15-12-40-24.mp4" loop autoplay controls></video>
         <h3>Kepler-16</h3>
         <p>From Wikipedia, "Kepler-16 is an <a href="https://en.wikipedia.org/wiki/Eclipsing_binary">eclipsing binary
                 star</a> system in the constellation of Cygnus that was targeted by the <a
@@ -67,7 +75,7 @@
         <p>Finally, notice that the stars are in a pattern of falling towards each other and then falling past each
             other, speeding them up and slowing them down together. This is illustrated in the kinetic energy plot as
             both oscillate simultaneously.</p>
-        <video src="media/Kepler16_2021-11-13-01-48-46.mp4" loop autoplay controls></video>
+        <video src="media/Kepler16_2021-11-15-12-42-27.mp4" loop autoplay controls></video>
         <h3>Random Cube of Bodies</h3>
         <p>This simulation is the first example of things that can go terribly wrong in numerical computation. Almost
             immediately, two of the bodies in the cube collide (more or less, i.e., they fling past each other), sending
