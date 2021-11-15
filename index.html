@@ -10,6 +10,7 @@
     </head>
 
     <body>
+
         <h1>N-Body Simulation</h1>
         <p>Imagine a whole bunch of stuff (preferably coalesced into bodies like stars or planets) out there in space.
             Anywhere, anytime. Just, <em>imagine</em>. What are those things doing? Are they still? Spinning? Moving
@@ -26,8 +27,8 @@
             of programming a computer to do this work for us is that we don't need an analytical solution - we can have
             the computer run the process step-by-step to show us a "really good" approximation of the motion of the
             bodies. That is exactly what this program is doing, and that is the essence of an N-Body simulation. Read
-            more about the <a href="https://en.wikipedia.org/wiki/N-body_problem">N-Body Problem</a> or <ahref="https:
-                //en.wikipedia.org/wiki/N-body_simulation">N-Body Simulations</a>.</p>
+            more about the <a href="https://en.wikipedia.org/wiki/N-body_problem">N-Body Problem</a> or <a
+                href="https://en.wikipedia.org/wiki/N-body_simulation">N-Body Simulations</a>.</p>
         <h2>Installation</h2>
         <p>Ugh. If any part of this program will stop people from enjoying it, it's the installation. Hopefully <a
                 href="https://github.com/collinsinclair/N-Body-Improved/issues/16">someday in the future,</a> this will
@@ -47,16 +48,19 @@
         <img src="media/menu.png" alt="A menu system">
 
         <h2>Simulations</h2>
+
         <h3>Sun-Earth</h3>
         <p>Here is the first and most basic of the simulations: it's just the Sun and the Earth! And because I haven't
             coded in any sort of friction or otherwise resistive forces, nothing is changing!</p>
         <video src="media/SunEarth_2021-11-15-12-38-03.mp4" loop autoplay controls></video>
+
         <h3>Sun-Earth-Moon</h3>
         <p>You really can't even tell the Moon is there, and that's because it's inside the Earth. No, really! The dots
             are scaled by mass, but I set an absolute minimum size so that all particle/bodies would be visible from the
             outset. This fact, combined with the (literal) astronomical scales in the Sun-Earth-Moon system put the Moon
             inside of the Earth in the plot.</p>
         <video src="media/SunEarthMoon_2021-11-15-12-40-24.mp4" loop autoplay controls></video>
+
         <h3>Kepler-16</h3>
         <p>From Wikipedia, "Kepler-16 is an <a href="https://en.wikipedia.org/wiki/Eclipsing_binary">eclipsing binary
                 star</a> system in the constellation of Cygnus that was targeted by the <a
@@ -75,6 +79,7 @@
             other, speeding them up and slowing them down together. This is illustrated in the kinetic energy plot as
             both oscillate simultaneously.</p>
         <video src="media/Kepler16_2021-11-15-12-42-27.mp4" loop autoplay controls></video>
+
         <h3>Random Cube of Bodies</h3>
         <p>This simulation is the first example of things that can go terribly wrong in numerical computation. Almost
             immediately, two of the bodies in the cube collide (more or less, i.e., they fling past each other), sending
@@ -94,6 +99,7 @@
             that he
             has decided to lend me some of his genius on all of this.</p>
         <video src="media/RandomCube_2021-11-13-01-50-30.mp4" loop autoplay controls></video>
+
         <h3>Uniform Cube of Bodies</h3>
         <p>Here we see another slingshot phenomenon, something that could be fixed by an adaptive time step process as
             mentioned above, or by simply using smaller constant time steps. In the video below, I used a time step of
@@ -102,6 +108,7 @@
         <p>Now let's use a finer time step and see how the result change (and since this system isn't randomly
             generated, the results are a true testament to the power - and shortcomings - of numerical integration).</p>
         <video src="media/UniformCube_2021-11-15-11-47-09.mp4" loop autoplay controls></video>
+
         <h3>Pythagorean System</h3>
         <p>I absolutely love how this one shows the slingshotting with more-or-less correct "deceleration" afterwards.
             The simulation starts with all three particles accelerating towards each other, then we see the two close
@@ -110,9 +117,11 @@
             towards each other, but alas. They have successfully <a
                 href="https://en.wikipedia.org/wiki/Escape_velocity">escaped</a> each other's gravity. Beautiful!</p>
         <video src="media/Pythagorean_2021-11-13-03-20-22.mp4" loop autoplay controls></video>
+
         <h3>Figure 8</h3>
         <p>A classic example of N-body choreography, the obscure art of finding perfectly periodic N-body solutions.</p>
         <video src="media/Figure8_2021-11-13-01-58-19.mp4" loop autoplay controls></video>
+
         <h3>Planetesimal Disk</h3>
         <p>Everyone's favorite. There are lots of things to talk about here! First, I used the default parameters to
             simulate a planetesimal disk with 30 bodies over the course of a year (with a timestep of 0.5 days). The
@@ -140,6 +149,7 @@
         <p>Perhaps intuitively, all of the planets start with a higher KE than before (because they have a significantly
             higher initial velocity!). We see two planets migrate outwards and slow down as they are tugged on by the
             gravity of the host star. The others seem to continue doing their thing as time goes on. Amazing!</p>
+
         <h3>Tiny Cluster</h3>
         <video src="media/TinyCluster_2021-11-13-02-03-53.mp4" loop autoplay controls></video>
     </body>

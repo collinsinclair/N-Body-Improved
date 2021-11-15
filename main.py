@@ -11,7 +11,7 @@ try:
     from mpl_toolkits.mplot3d import Axes3D
     from tqdm import tqdm
 
-    from src import leapfrog, systems
+    from src import rungekatta, systems
 
     # TODO also need to check that ffmpeg is installed - how to do this from .py script?
 except ImportError:
@@ -30,7 +30,7 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     return new_cmap
 
 
-def makeVideosDir():
+def make_videos_dir():
     if not os.path.exists("videos"):
         os.mkdir("videos")
 
@@ -45,29 +45,31 @@ def faketype(words, speed=0.001, newline=True):
     return ""
 
 
-def faketypeIntro():
+def faketype_intro():
     # clear the screen
     os.system('cls' if os.name == 'nt' else 'clear')
     # roll the text onto the screen as if it's being typed by someone
     input(faketype(
         "Welcome to Collin's N-Body Gravity Simulation! Press return to continue.", newline=False))
     input(faketype(
-        "This program simulates the time evolution of various gravitational systems like the Sun and Moon, a planetesimal disk, or a star cluster. [return]", newline=False))
+        "This program simulates the time evolution of various gravitational systems like the Sun and Moon, "
+        "a planetesimal disk, or a star cluster. [return]", newline=False))
     input(faketype(
-        "The simulation uses a Runge-Katta Method, a iterative numerical method which we apply to the equations of motion of a system of particles. [return]", newline=False))
-    input(faketype("""Each system has parameters that you can change to modify the simulation, which include
+        "The simulation uses a Runge-Katta Method, a iterative numerical method which we apply to the equations of "
+        "motion of a system of particles. [return]", newline=False))
+    input(faketype("""Each system has parameters that you can customize to modify the simulation, which include
     - the total duration (how long the simulation runs)
-    - the time step (the simulation time between calculations - smaller = smoother and more accurate, but takes longer)
     - the number of bodies in the system
     - the scatter of starting velocities in the system
     - and more! [return]""", newline=False))
     # get current working directory
     cwd = os.getcwd()
-    input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder that was created in the same folder you ran this program in: {}. [return]".format(
-        cwd), newline=False))
+    input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder "
+                   "that was created in the same folder you ran this program in: {}. [return]".format(cwd),
+                   newline=False))
 
 
-def faketypeSystemMenu():
+def faketype_system_menu():
     faketype("--------------------")
     faketype("1. Sun-Earth System", 0.001)
     faketype("2. Sun-Earth-Moon System", 0.001)
@@ -96,12 +98,13 @@ def faketypeSystemMenu():
     faketype("--------------------")
 
 
-def faketypeOptions(chooseN=False, defaultN=0):
-    faketype("""
-DURATION, TIMESTEP, SAMPLINGRATE, and SPEED
-The duration specifies the amount of time the simulation runs. The timestep specifies the amount of time over which to \"nudge\" the particles in each step of the numerical integration. A smaller time step leads to a longer calculation time but gives more accurate results. The sampling rate determines how many steps are skipped between video frames. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of video per year in simulation.""")
+def faketype_options(choose_n=False, default_n=0):
+    faketype("""\nDURATION, SAMPLINGRATE, and SPEED
+    The duration specifies the amount of time the simulation runs. The sampling rate determines how many steps are
+    skipped between video frames. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of
+    video per year in simulation.""")
     choice = input("""Would you like to
-    (1) use the defaults (1 year, 0.5 days, 1 step/frame, 1x speed) or
+    (1) use the defaults (1 year, 1 step/frame, 1x speed) or
     (2) enter your own?
 Enter a 1 or 2: """)
     while choice != "1" and choice != "2":
@@ -115,20 +118,19 @@ Enter a 1 or 2: """)
     else:
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
-        timestep = float(input("Enter a time step in days: ")) * (60 * 60 * 24)
+        timestep = 60 * 60 * 24 * 0.5
         samplingrate = int(
             input("Enter an integer number of steps per frame: "))
         speed = int(input("Enter a speed multiplier: "))
-    if chooseN:
-        faketype(f"""
-NUMBER OF PARTICLES""")
-        nChoice = input(f"""Would you like to
-    (1) use the default number of particles ({defaultN}) or
+    if choose_n:
+        faketype(f"""\nNUMBER OF PARTICLES""")
+        n_choice = input(f"""Would you like to
+    (1) use the default number of particles ({default_n}) or
     (2) enter your own?
 Enter a 1 or a 2: """)
-        while nChoice != "1" and nChoice != "2":
-            nChoice = input("Invalid selection. Enter a 1 or as 2: ")
-        if nChoice == "1":
+        while n_choice != "1" and n_choice != "2":
+            n_choice = input("Invalid selection. Enter a 1 or as 2: ")
+        if n_choice == "1":
             n = 0
         else:
             n = int(input("Enter the number of particles: "))
@@ -137,10 +139,11 @@ Enter a 1 or a 2: """)
     return duration, timestep, samplingrate, speed, n
 
 
-def faketypeVelScatter(default=0):
-    faketype(f"""
-VELOCITY SCATTER
-The velocity scatter specifies the width of the Gaussian distribution from which to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will be.""")
+def faketype_velocity_scatter(default=0):
+    faketype(f"""\nVELOCITY SCATTER
+    The velocity scatter specifies the width of the Gaussian distribution from which 
+    to draw the initial velocities of the particles. The higher the value, the more spread out the velocities will 
+    be.""")
     choice = input(f"""Would you like to
     (1) use the default ({default}) or
     (2) enter your own?
@@ -154,10 +157,11 @@ Enter a 1 or a 2: """)
     return vel_scatter
 
 
-def faketypeMassRatios(default=0):
-    faketype(f"""
-MASS RATIO
-The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles.""")
+def faketype_mass_ratios(default=0.0):
+    faketype(f"""\nMASS RATIO
+    The evolution of the system depends on the ratio of mass each planetesimal to the mass of the central star. At very
+    small values, the gravity is totally dominated by the central star; at larger values (above about 1e-6, roughly an
+    Earth mass per particle), the orbits may start to go unstable due to the interactions between the particles.""")
     choice = input(f"""Would you like to
     (1) use the default ratio ({default}) or
     (2) enter your own?
@@ -173,10 +177,10 @@ Enter a 1 or a 2: """)
     return ratio
 
 
-def faketypeZVel(default=0):
-    faketype(f"""
-Z VELOCITY
-The z velocity of the particles is the vertical component of their velocity. The z velocity is the component of the velocity in the direction of the z axis.""")
+def faketype_z_velocities(default=0):
+    faketype(f"""\nZ VELOCITY
+    The z velocity of the particles is the vertical component of their velocity. The z 
+    velocity is the component of the velocity in the direction of the z axis.""")
     choice = input(f"""Would you like to
     (1) use the default z velocity ({default}) or
     (2) enter your own?
@@ -190,13 +194,12 @@ Enter a 1 or a 2: """)
     return z_vel
 
 
-def faketypeMaxMass(default=0):
+def faketype_max_mass(default=0.0):
     m_sun = 1.98892e30  # kg
-    faketype("""
-MAXIMUM MASS
-The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
+    faketype("""\nMAXIMUM MASS
+    The maximum mass of the particles in the cluster is 0.01 solar masses by default.""")
     choice = input(f"""Would you like to
-    (1) use the default ({default/m_sun:.2f} solar masses) or
+    (1) use the default ({default / m_sun:.2f} solar masses) or
     (2) enter your own?
 Enter a 1 or a 2: """)
     while choice != "1" and choice != "2":
@@ -205,106 +208,105 @@ Enter a 1 or a 2: """)
             "Would you like to (1) use the default or (2) enter your own? ")
     if choice == "2":
         max_mass = m_sun * \
-            float(input("Enter the maximum mass (in solar masses): "))
+                   float(input("Enter the maximum mass (in solar masses): "))
     else:
         max_mass = 0
     return max_mass
 
 
-def simulateSunEarth():
+def simulate_sun_earth():
     masses, positions, velocities = systems.SunEarth()
-    duration, dt, samplingrate, speed, n = faketypeOptions()
+    duration, dt, samplingrate, speed, n = faketype_options()
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateSunEarthMoon():
+def simulate_sun_earth_moon():
     masses, positions, velocities = systems.SunEarthMoon()
-    duration, dt, samplingrate, speed, n = faketypeOptions()
+    duration, dt, samplingrate, speed, n = faketype_options()
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateKepler16():
+def simulate_kepler_16():
     masses, positions, velocities = systems.Kepler16()
-    duration, dt, samplingrate, speed, n = faketypeOptions()
+    duration, dt, samplingrate, speed, n = faketype_options()
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateRandomCube():
-    duration, dt, samplingrate, speed, n = faketypeOptions(
-        chooseN=True, defaultN=30)
+def simulate_random_cube():
+    duration, dt, samplingrate, speed, n = faketype_options(choose_n=True, default_n=30)
     if n == 0:
         n = 30
-    velScatter = faketypeVelScatter(2000)
-    if velScatter == 0:
-        velScatter = 2000
-    masses, positions, velocities = systems.randomCube(n, velScatter)
+    velocity_scatter = faketype_velocity_scatter(2000)
+    if velocity_scatter == 0:
+        velocity_scatter = 2000
+    masses, positions, velocities = systems.randomCube(n, velocity_scatter)
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateUniformCube():
-    duration, dt, samplingrate, speed, n = faketypeOptions(True, 16)
+def simulate_uniform_cube():
+    duration, dt, samplingrate, speed, n = faketype_options(True, 16)
     if n == 0:
         n = 16
-    velScatter = faketypeVelScatter(5000)
-    if velScatter == 0:
-        velScatter = 5000
-    masses, positions, velocities = systems.uniformCube(n, velScatter)
+    velocity_scatter = faketype_velocity_scatter(5000)
+    if velocity_scatter == 0:
+        velocity_scatter = 5000
+    masses, positions, velocities = systems.uniformCube(n, velocity_scatter)
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulatePythagorean():
+def simulate_pythagorean():
     masses, positions, velocities = systems.pythagorean()
-    duration, dt, samplingrate, speed, n = faketypeOptions()
+    duration, dt, samplingrate, speed, n = faketype_options()
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateFigure8():
+def simulate_figure_8():
     masses, positions, velocities = systems.figure8()
-    duration, dt, samplingrate, speed, n = faketypeOptions()
+    duration, dt, samplingrate, speed, n = faketype_options()
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulatePlanetesimalDisk():
-    duration, dt, samplingrate, speed, n = faketypeOptions(True, 30)
+def simulate_planetesimal_disk():
+    duration, dt, samplingrate, speed, n = faketype_options(True, 30)
     if n == 0:
         n = 30
-    massRatio = faketypeMassRatios(1e-10)
-    if massRatio == 0:
-        massRatio = 1e-10
-    zVel = faketypeZVel(1000)
-    if zVel == 0:
-        zVel = 1000
+    mass_ratio = faketype_mass_ratios(1e-10)
+    if mass_ratio == 0:
+        mass_ratio = 1e-10
+    z_velocity = faketype_z_velocities(1000)
+    if z_velocity == 0:
+        z_velocity = 1000
     masses, positions, velocities = systems.planetesimalDisk(
-        n, massRatio, zVel)
+        n, mass_ratio, z_velocity)
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def simulateTinyCluster():
-    duration, dt, samplingrate, speed, n = faketypeOptions(True, 20)
+def simulate_tiny_cluster():
+    duration, dt, samplingrate, speed, n = faketype_options(True, 20)
     if n == 0:
         n = 20
-    maxMass = faketypeMaxMass(0.01*1.989e30)
-    if maxMass == 0:
-        maxMass = 0.01 * 1.989e30
-    masses, positions, velocities = systems.tinyCluster(n, maxMass)
+    max_mass = faketype_max_mass(0.01 * 1.989e30)
+    if max_mass == 0:
+        max_mass = 0.01 * 1.989e30
+    masses, positions, velocities = systems.tinyCluster(n, max_mass)
     return masses, positions, velocities, duration, dt, samplingrate, speed
 
 
-def selectSystem():
-    systems = ["SunEarth", "SunEarthMoon", "Kepler16", "RandomCube",
-               "UniformCube", "Pythagorean", "Figure8", "PlanetesimalDisk", "TinyCluster"]
-    faketypeSystemMenu()
+def select_system():
+    system_options = ["SunEarth", "SunEarthMoon", "Kepler16", "RandomCube",
+                      "UniformCube", "Pythagorean", "Figure8", "PlanetesimalDisk", "TinyCluster"]
+    faketype_system_menu()
     system = input("Please select a system: ")
     # attempt to convert the input to an integer
-    validChoice = False
-    while not validChoice:
+    valid_choice = False
+    while not valid_choice:
         try:
             system = int(system)
             if system < 0 or system > 9:
                 system = input(
                     "Invalid choice. Please enter a number between 1 and 9: ")
             else:
-                validChoice = True
+                valid_choice = True
         except ValueError:
             system = input(
                 "Invalid choice. Please enter a number between 1 and 9: ")
@@ -313,61 +315,61 @@ def selectSystem():
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Sun-Earth")
-        return simulateSunEarth(), systems[system-1]
+        return simulate_sun_earth(), system_options[system - 1]
     elif system == 2:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Sun-Earth-Moon")
-        return simulateSunEarthMoon(), systems[system-1]
+        return simulate_sun_earth_moon(), system_options[system - 1]
     elif system == 3:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Kepler-16")
-        return simulateKepler16(), systems[system-1]
+        return simulate_kepler_16(), system_options[system - 1]
     elif system == 4:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Random Cube")
-        return simulateRandomCube(), systems[system-1]
+        return simulate_random_cube(), system_options[system - 1]
     elif system == 5:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Uniform Cube")
-        return simulateUniformCube(), systems[system-1]
+        return simulate_uniform_cube(), system_options[system - 1]
     elif system == 6:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Pythagorean")
-        return simulatePythagorean(), systems[system-1]
+        return simulate_pythagorean(), system_options[system - 1]
     elif system == 7:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Figure 8")
-        return simulateFigure8(), systems[system-1]
+        return simulate_figure_8(), system_options[system - 1]
     elif system == 8:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Planetesimal Disk")
-        return simulatePlanetesimalDisk(), systems[system-1]
+        return simulate_planetesimal_disk(), system_options[system - 1]
     elif system == 9:
         os.system('cls' if os.name == 'nt' else 'clear')
         faketype("--------------------")
         faketype("Tiny Cluster")
-        return simulateTinyCluster(), systems[system-1]
+        return simulate_tiny_cluster(), system_options[system - 1]
 
 
 def main():
-    makeVideosDir()
-    faketypeIntro()
+    make_videos_dir()
+    faketype_intro()
     cont = True
     while cont:
         # clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
         (masses, positions, velocities, duration, dt,
-         samplingrate, speed), name = selectSystem()
+         samplingrate, speed), name = select_system()
         faketype("--------------------")
-        leapfrog.animate(masses, positions, velocities,
-                         duration, dt, samplingrate, speed, name)
+        rungekatta.animate(masses, positions, velocities,
+                           duration, dt, samplingrate, speed, name)
         cont = input("Would you like to run another simulation? (y/n) ")
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
@@ -375,15 +377,15 @@ def main():
             # clear the screen
             os.system('cls' if os.name == 'nt' else 'clear')
             # get path to video directory
-            videoDir = os.path.join(os.getcwd(), "videos")
+            video_dir = os.path.join(os.getcwd(), "videos")
             # get size of video directroy
             size = 0
-            for path, dirs, files in os.walk(videoDir):
+            for path, dirs, files in os.walk(video_dir):
                 for f in files:
                     fp = os.path.join(path, f)
                     size += os.path.getsize(fp)
             faketype(
-                f"Your videos are stored in {videoDir}, and they take up {size/1e6:.1f} MB.")
+                f"Your videos are stored in {video_dir}, and they take up {size / 1e6:.1f} MB.")
             faketype("Thank you for using the simulation!")
             cont = False
 
