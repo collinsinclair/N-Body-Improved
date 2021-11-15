@@ -30,82 +30,84 @@ def faketype(words, speed=0.001, newline=True):
         print("")
     return ""
 
-def calculateAcceleration(masses, positions):
-    nParticles, nDimensions = positions.shape
+
+def calculate_acceleration(masses, positions):
+    n_particles, n_dimensions = positions.shape
     force = forces.calculateForceVectors(masses, positions)
-    acceleration = force/np.array(masses).reshape(nParticles, 1)
+    acceleration = force / np.array(masses).reshape(n_particles, 1)
     return acceleration
 
+
 def rungekutta(masses, positions, velocities, dt):
-    nParticles, nDimensions = positions.shape
-    kv = np.zeros((4, nParticles, nDimensions))
-    kr = np.zeros((4, nParticles, nDimensions))
-    kv[0] = calculateAcceleration(masses, positions)
+    n_particles, n_dimensions = positions.shape
+    kv = np.zeros((4, n_particles, n_dimensions))
+    kr = np.zeros((4, n_particles, n_dimensions))
+    kv[0] = calculate_acceleration(masses, positions)
     kr[0] = velocities
-    kv[1] = calculateAcceleration(masses, positions+kr[0]*dt/2)
-    kr[1] = velocities + kv[0]*dt/2
-    kv[2] = calculateAcceleration(masses, positions+kr[1]*dt/2)
-    kr[2] = velocities + kv[1]*dt/2
-    kv[3] = calculateAcceleration(masses, positions+kr[2]*dt)
-    kr[3] = velocities + kv[2]*dt
-    nv = dt/6*(kv[0] + 2*kv[1] + 2*kv[2] + kv[3])
-    nr = dt/6*(kr[0] + 2*kr[1] + 2*kr[2] + kr[3])
+    kv[1] = calculate_acceleration(masses, positions + kr[0] * dt / 2)
+    kr[1] = velocities + kv[0] * dt / 2
+    kv[2] = calculate_acceleration(masses, positions + kr[1] * dt / 2)
+    kr[2] = velocities + kv[1] * dt / 2
+    kv[3] = calculate_acceleration(masses, positions + kr[2] * dt)
+    kr[3] = velocities + kv[2] * dt
+    nv = dt / 6 * (kv[0] + 2 * kv[1] + 2 * kv[2] + kv[3])
+    nr = dt / 6 * (kr[0] + 2 * kr[1] + 2 * kr[2] + kr[3])
     return nr, nv
 
 
-def updateParticles(masses, positions, velocities, dt):
+def update_particles(masses, positions, velocities, dt):
     nr, nv = rungekutta(masses, positions, velocities, dt)
-    nr, nv = updateParticlesRecursive(masses, positions, velocities, dt, nr)
+    nr, nv = update_particles_recursive(masses, positions, velocities, dt, nr)
     return (positions + nr), (velocities + nv)
 
 
-def updateParticlesRecursive(masses, positions, velocities, dt, prev):
-    nParticles, nDimensions = positions.shape
-    nr1, nv1 = rungekutta(masses, positions, velocities, dt/2)
-    nr2, nv2 = rungekutta(masses, positions + nr1, velocities + nv1, dt/2)
-    if max([forces.magnitude(nr1[i]+nr2[i]-prev[i])/forces.magnitude(nr1[i]+nr2[i]) for i in range(nParticles)]) > 0.01:
-        Nnr1, Nnv1 = updateParticlesRecursive(masses, positions, velocities, dt/2, nr1)
-        Nnr2, Nnv2 = updateParticlesRecursive(masses, positions+Nnr1, velocities+Nnv1, dt/2, nr1+nr2-Nnr1)
-        return (Nnr1+Nnr2), (Nnv1+Nnv2)
+def update_particles_recursive(masses, positions, velocities, dt, prev):
+    n_particles, n_dimensions = positions.shape
+    nr1, nv1 = rungekutta(masses, positions, velocities, dt / 2)
+    nr2, nv2 = rungekutta(masses, positions + nr1, velocities + nv1, dt / 2)
+    if max([forces.magnitude(nr1[i] + nr2[i] - prev[i]) / forces.magnitude(nr1[i] + nr2[i]) for i in
+            range(n_particles)]) > 0.01:
+        Nnr1, Nnv1 = update_particles_recursive(masses, positions, velocities, dt / 2, nr1)
+        Nnr2, Nnv2 = update_particles_recursive(masses, positions + Nnr1, velocities + Nnv1, dt / 2, nr1 + nr2 - Nnr1)
+        return (Nnr1 + Nnr2), (Nnv1 + Nnv2)
     else:
-        return (nr1+nr2), (nv1+nv2)
+        return (nr1 + nr2), (nv1 + nv2)
 
 
-def calculateKEs(masses, positions, velocities):
+def calculate_kinetic_energies(masses, velocities):
     n = len(masses)
     tot = np.zeros(n)
     for i in range(n):
-        tot[i] = 0.5*masses[i]*forces.magnitude(velocities[i])**2
+        tot[i] = 0.5 * masses[i] * forces.magnitude(velocities[i]) ** 2
     return tot
 
 
-def calculatePEs(masses, positions, velocities):
+def calculate_potential_energies(masses, positions):
     n = len(masses)
     tot = np.zeros(n)
     for i in range(n):
         for j in range(n):
-            if(i != j):
-                tot[i] -= 6.67e-11*masses[j] / \
-                    forces.magnitude(positions[i] - positions[j])
+            if i != j:
+                tot[i] -= 6.67e-11 * masses[j] / \
+                          forces.magnitude(positions[i] - positions[j])
     return tot
 
 
 def animate(masses, positions, velocities, duration, dt, samplingrate, speed, name):
-
     # make sure the three input arrays have consistent shapes
-    nParticles, nDimensions = positions.shape
-    assert(velocities.shape == positions.shape)
-    assert(len(masses) == nParticles)
+    n_particles, n_dimensions = positions.shape
+    assert (velocities.shape == positions.shape)
+    assert (len(masses) == n_particles)
 
-    timesInSecs = np.arange(0, duration, dt)
-    timeInDays = timesInSecs / 86400
+    times_in_secs = np.arange(0, duration, dt)
+    times_in_days = times_in_secs / 86400
 
     plt.style.use("dark_background")
 
     # Determine the framerate that results in one year in the simulation taking 15 seconds
     oneyear = 15
     dt_in_days = dt / 86400
-    fps_ = round(speed * 365 / (oneyear*dt_in_days*samplingrate))
+    fps_ = round(speed * 365 / (oneyear * dt_in_days * samplingrate))
 
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
@@ -116,18 +118,17 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
     xy_plane = fig.add_subplot(133)
 
     filename = './videos/' + name + '_' + \
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
+               datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.mp4'
 
     with wri.saving(fig, filename, 100):
         faketype("Calculating trajectories and generating video...")
 
         # calculate the distance of each particle to the origin
         distances = np.array([forces.magnitude(positions[i])
-                             for i in range(nParticles)])
-        normed_distances = distances / np.max(distances)
+                              for i in range(n_particles)])
 
         # calculate the KE of each particle
-        KEs = np.empty((nParticles, len(timesInSecs)))
+        kinetic_energies = np.empty((n_particles, len(times_in_secs)))
 
         cmap = plt.get_cmap('plasma')
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
@@ -143,17 +144,14 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
         #     lines = f.readlines()
 
         initial_sizes = np.clip(masses / max(masses) * 300, 10, 300)
-        initial_scale = max_distance_prev*1.1
+        initial_scale = max_distance_prev * 1.1
 
-
-        for i in tqdm(range(len(timeInDays))):
-            positions, velocities = updateParticles(
-                masses, positions, velocities, dt)
-            KEs[:, i] = calculateKEs(
-                    masses, positions, velocities)
-            if i%samplingrate == 0:
+        for i in tqdm(range(len(times_in_days))):
+            positions, velocities = update_particles(masses, positions, velocities, dt)
+            kinetic_energies[:, i] = calculate_kinetic_energies(masses, positions)
+            if i % samplingrate == 0:
                 distances = np.array([forces.magnitude(positions[k])
-                                      for k in range(nParticles)])
+                                      for k in range(n_particles)])
                 normed_distances = distances / np.max(distances)
 
                 # this whole business keeps the axes on the same scale and (0,0,0) in the center
@@ -179,7 +177,7 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
                 isometric.xaxis.pane.set_edgecolor('k')
                 isometric.yaxis.pane.set_edgecolor('k')
                 isometric.zaxis.pane.set_edgecolor('k')
-                sizes = initial_sizes * (initial_scale/bound)**2
+                sizes = initial_sizes * (initial_scale / bound) ** 2
                 isometric.scatter(positions[:, 0], positions[:, 1],
                                   positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)
 
@@ -208,15 +206,15 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
                                  s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
 
                 ke_2d.clear()
-                for j in range(KEs.shape[0]):
-                    ke_2d.plot(timeInDays[:i], KEs[j, :i],
+                for j in range(kinetic_energies.shape[0]):
+                    ke_2d.plot(times_in_days[:i], kinetic_energies[j, :i],
                                c=new_cmap(normed_distances[j]))
-                    ke_2d.set_xlim(timeInDays[0], timeInDays[-1])
+                    ke_2d.set_xlim(times_in_days[0], times_in_days[-1])
                     ke_2d.set_xlabel("Time")
                     ke_2d.set_ylabel("Kinetic Energy")
                     ke_2d.set_xticks([])
                     ke_2d.set_yticks([])
-                fig.suptitle(f'{name} at {timeInDays[i]:.1f} Days')
+                fig.suptitle(f'{name} at {times_in_days[i]:.1f} Days')
                 fig.tight_layout()
                 wri.grab_frame()
 
@@ -236,5 +234,5 @@ def animate(masses, positions, velocities, duration, dt, samplingrate, speed, na
         faketype("Video generated!")
         try:
             os.system(f'open "{filename}"')
-        except:
+        except OSError:
             faketype("Could not open video in default video player.")
