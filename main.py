@@ -99,12 +99,11 @@ def faketype_system_menu():
 
 
 def faketype_options(choose_n=False, default_n=0):
-    faketype("""\nDURATION, SAMPLINGRATE, and SPEED
-    The duration specifies the amount of time the simulation runs. The sampling rate determines how many steps are
-    skipped between video frames. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of
+    faketype("""\nDURATION and SPEED
+    The duration specifies the amount of time the simulation runs. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of
     video per year in simulation.""")
     choice = input("""Would you like to
-    (1) use the defaults (1 year, 1 step/frame, 1x speed) or
+    (1) use the defaults (1 year, 1x speed) or
     (2) enter your own?
 Enter a 1 or 2: """)
     while choice != "1" and choice != "2":
@@ -112,15 +111,10 @@ Enter a 1 or 2: """)
         choice = input()
     if choice == "1":
         duration = 365 * 24 * 60 * 60  # 1 year
-        timestep = 60 * 60 * 24 * 0.5  # 0.5 days
-        samplingrate = 1
         speed = 1
     else:
         duration = float(input("Enter a duration in years: ")
                          ) * (365 * 60 * 60 * 24)
-        timestep = 60 * 60 * 24 * 0.5
-        samplingrate = int(
-            input("Enter an integer number of steps per frame: "))
         speed = int(input("Enter a speed multiplier: "))
     if choose_n:
         faketype(f"""\nNUMBER OF PARTICLES""")
@@ -136,7 +130,7 @@ Enter a 1 or a 2: """)
             n = int(input("Enter the number of particles: "))
     else:
         n = 0
-    return duration, timestep, samplingrate, speed, n
+    return duration, speed, n
 
 
 def faketype_velocity_scatter(default=0):
@@ -216,58 +210,58 @@ Enter a 1 or a 2: """)
 
 def simulate_sun_earth():
     masses, positions, velocities = systems.SunEarth()
-    duration, dt, samplingrate, speed, n = faketype_options()
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    duration, speed, n = faketype_options()
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_sun_earth_moon():
     masses, positions, velocities = systems.SunEarthMoon()
-    duration, dt, samplingrate, speed, n = faketype_options()
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    duration, speed, n = faketype_options()
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_kepler_16():
     masses, positions, velocities = systems.Kepler16()
-    duration, dt, samplingrate, speed, n = faketype_options()
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    duration, speed, n = faketype_options()
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_random_cube():
-    duration, dt, samplingrate, speed, n = faketype_options(choose_n=True, default_n=30)
+    duration, speed, n = faketype_options(choose_n=True, default_n=30)
     if n == 0:
         n = 30
     velocity_scatter = faketype_velocity_scatter(2000)
     if velocity_scatter == 0:
         velocity_scatter = 2000
     masses, positions, velocities = systems.randomCube(n, velocity_scatter)
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_uniform_cube():
-    duration, dt, samplingrate, speed, n = faketype_options(True, 16)
+    duration, speed, n = faketype_options(True, 16)
     if n == 0:
         n = 16
     velocity_scatter = faketype_velocity_scatter(5000)
     if velocity_scatter == 0:
         velocity_scatter = 5000
     masses, positions, velocities = systems.uniformCube(n, velocity_scatter)
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_pythagorean():
     masses, positions, velocities = systems.pythagorean()
-    duration, dt, samplingrate, speed, n = faketype_options()
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    duration, speed, n = faketype_options()
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_figure_8():
     masses, positions, velocities = systems.figure8()
-    duration, dt, samplingrate, speed, n = faketype_options()
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    duration, speed, n = faketype_options()
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_planetesimal_disk():
-    duration, dt, samplingrate, speed, n = faketype_options(True, 30)
+    duration, speed, n = faketype_options(True, 30)
     if n == 0:
         n = 30
     mass_ratio = faketype_mass_ratios(1e-10)
@@ -278,18 +272,18 @@ def simulate_planetesimal_disk():
         z_velocity = 1000
     masses, positions, velocities = systems.planetesimalDisk(
         n, mass_ratio, z_velocity)
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    return masses, positions, velocities, duration, speed
 
 
 def simulate_tiny_cluster():
-    duration, dt, samplingrate, speed, n = faketype_options(True, 20)
+    duration, speed, n = faketype_options(True, 20)
     if n == 0:
         n = 20
     max_mass = faketype_max_mass(0.01 * 1.989e30)
     if max_mass == 0:
         max_mass = 0.01 * 1.989e30
     masses, positions, velocities = systems.tinyCluster(n, max_mass)
-    return masses, positions, velocities, duration, dt, samplingrate, speed
+    return masses, positions, velocities, duration, speed
 
 
 def select_system():
@@ -365,11 +359,10 @@ def main():
     while cont:
         # clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        (masses, positions, velocities, duration, dt,
-         samplingrate, speed), name = select_system()
+        (masses, positions, velocities, duration, speed), name = select_system()
         faketype("--------------------")
         rungekutta.animate(masses, positions, velocities,
-                           duration, dt, samplingrate, speed, name)
+                           duration, speed, name)
         cont = input("Would you like to run another simulation? (y/n) ")
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
