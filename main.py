@@ -11,7 +11,7 @@ try:
     from mpl_toolkits.mplot3d import Axes3D
     from tqdm import tqdm
 
-    from src import rungekatta, systems
+    from src import rungekutta, systems
 
     # TODO also need to check that ffmpeg is installed - how to do this from .py script?
 except ImportError:
@@ -55,7 +55,7 @@ def faketype_intro():
         "This program simulates the time evolution of various gravitational systems like the Sun and Moon, "
         "a planetesimal disk, or a star cluster. [return]", newline=False))
     input(faketype(
-        "The simulation uses a Runge-Katta Method, a iterative numerical method which we apply to the equations of "
+        "The simulation uses a Runge-Kutta Method, a iterative numerical method which we apply to the equations of "
         "motion of a system of particles. [return]", newline=False))
     input(faketype("""Each system has parameters that you can customize to modify the simulation, which include
     - the total duration (how long the simulation runs)
@@ -368,7 +368,7 @@ def main():
         (masses, positions, velocities, duration, dt,
          samplingrate, speed), name = select_system()
         faketype("--------------------")
-        rungekatta.animate(masses, positions, velocities,
+        rungekutta.animate(masses, positions, velocities,
                            duration, dt, samplingrate, speed, name)
         cont = input("Would you like to run another simulation? (y/n) ")
         while cont != "y" and cont != "n":
