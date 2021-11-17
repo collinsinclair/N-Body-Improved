@@ -55,23 +55,23 @@ def rungekutta(masses, positions, velocities, dt):
 
 def update_particles(masses, positions, velocities, dt):
     nr, nv = rungekutta(masses, positions, velocities, dt)
-    nr2, nv2, dtm2 = update_particles_recursive(masses, positions, velocities, dt, nr)
+    nr2, nv2, dtm2 = update_particles_recursive(masses, positions, velocities, dt, nr, 20)
     cnr = np.concatenate((np.array([positions]), nr2)).cumsum(axis=0)
     cnv = np.concatenate((np.array([velocities]), nv2)).cumsum(axis=0)
     cdtm = np.concatenate((np.array([0]), dtm2)).cumsum()
     return cnr, cnv, cdtm
 
 
-def update_particles_recursive(masses, positions, velocities, dt, prev):
+def update_particles_recursive(masses, positions, velocities, dt, prev, nmax):
     n_particles, n_dimensions = positions.shape
     nr1, nv1 = rungekutta(masses, positions, velocities, dt / 2)
     nr2, nv2 = rungekutta(masses, positions + nr1, velocities + nv1, dt / 2)
     if max([forces.magnitude(nr1[i] + nr2[i] - prev[i]) / forces.magnitude(nr1[i] + nr2[i]) for i in
-            range(n_particles)]) > 1e-2:
-        Nnr1, Nnv1, dtm1 = update_particles_recursive(masses, positions, velocities, dt / 2, nr1)
+            range(n_particles)]) > 1e-2 and nmax>0:
+        Nnr1, Nnv1, dtm1 = update_particles_recursive(masses, positions, velocities, dt / 2, nr1, nmax-1)
         Nnr2, Nnv2, dtm2 = update_particles_recursive(masses, positions + Nnr1.sum(axis=0),
                                                       velocities + Nnv1.sum(axis=0), dt / 2,
-                                                      nr1 + nr2 - Nnr1.sum(axis=0))
+                                                      nr1 + nr2 - Nnr1.sum(axis=0), nmax-1)
         return np.concatenate((Nnr1, Nnr2)), np.concatenate((Nnv1, Nnv2)), np.concatenate((dtm1, dtm2))
     else:
         return np.array([nr1, nr2]), np.array([nv1, nv2]), np.array([dt / 2, dt / 2])
