@@ -235,7 +235,7 @@ def animate(masses, positions, velocities, duration, speed, name):
                 ke_2d.set_ylabel("Kinetic Energy")
                 ke_2d.set_xticks([])
                 ke_2d.set_yticks([])
-            fig.suptitle(f'{name} at {times_in_days[i]:.1f} Days')
+            fig.suptitle(f'{name} at {times_in_days[i]/365:.1f} Years')
             fig.tight_layout()
             wri.grab_frame()
 
