@@ -100,7 +100,8 @@ def faketype_system_menu():
 
 def faketype_options(choose_n=False, default_n=0):
     faketype("""\nDURATION and SPEED
-    The duration specifies the amount of time the simulation runs. The speed determines how fast the video plays. 1x speed corresponds to 15 seconds of
+    The duration specifies the amount of time the simulation runs. The speed determines how fast the video plays. 1x
+    speed corresponds to 15 seconds of
     video per year in simulation.""")
     choice = input("""Would you like to
     (1) use the defaults (1 year, 1x speed) or

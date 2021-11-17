@@ -1,14 +1,12 @@
 import datetime
 import os
 import sys
-import time
 from time import sleep
 
 import matplotlib.animation as ani
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 from tqdm import tqdm
 
 from src import forces
@@ -71,10 +69,12 @@ def update_particles_recursive(masses, positions, velocities, dt, prev):
     if max([forces.magnitude(nr1[i] + nr2[i] - prev[i]) / forces.magnitude(nr1[i] + nr2[i]) for i in
             range(n_particles)]) > 1e-2:
         Nnr1, Nnv1, dtm1 = update_particles_recursive(masses, positions, velocities, dt / 2, nr1)
-        Nnr2, Nnv2, dtm2 = update_particles_recursive(masses, positions + Nnr1.sum(axis=0), velocities + Nnv1.sum(axis=0), dt / 2, nr1 + nr2 - Nnr1.sum(axis=0))
+        Nnr2, Nnv2, dtm2 = update_particles_recursive(masses, positions + Nnr1.sum(axis=0),
+                                                      velocities + Nnv1.sum(axis=0), dt / 2,
+                                                      nr1 + nr2 - Nnr1.sum(axis=0))
         return np.concatenate((Nnr1, Nnr2)), np.concatenate((Nnv1, Nnv2)), np.concatenate((dtm1, dtm2))
     else:
-        return np.array([nr1, nr2]), np.array([nv1, nv2]), np.array([dt/2, dt/2])
+        return np.array([nr1, nr2]), np.array([nv1, nv2]), np.array([dt / 2, dt / 2])
 
 
 def calculate_kinetic_energies(masses, velocities):
@@ -101,7 +101,7 @@ def animate(masses, positions, velocities, duration, speed, name):
     assert (velocities.shape == positions.shape)
     assert (len(masses) == n_particles)
 
-    dt = 86400*speed*365/(60*15)
+    dt = 86400 * speed * 365 / (60 * 15)
 
     times_in_secs = np.arange(0, duration, dt)
     times_in_days = times_in_secs / 86400
@@ -109,9 +109,9 @@ def animate(masses, positions, velocities, duration, speed, name):
     plt.style.use("dark_background")
 
     # Determine the framerate that results in one year in the simulation taking 15 seconds
-    #oneyear = 15
-    #dt_in_days = dt / 86400
-    fps_ = 60 #round(speed * 365 / (oneyear * dt_in_days * samplingrate))
+    # oneyear = 15
+    # dt_in_days = dt / 86400
+    fps_ = 60  # round(speed * 365 / (oneyear * dt_in_days * samplingrate))
 
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
@@ -156,17 +156,17 @@ def animate(masses, positions, velocities, duration, speed, name):
 
         for i in tqdm(range(len(times_in_days))):
             time = times_in_secs[i]
-            while time-last_time+dt*16 > dtm[-1]:
-                npositions, nvelocities, dtm = update_particles(masses, npositions[-1], nvelocities[-1], dt*16)
-                last_time += dt*16
+            while time - last_time + dt * 16 > dtm[-1]:
+                npositions, nvelocities, dtm = update_particles(masses, npositions[-1], nvelocities[-1], dt * 16)
+                last_time += dt * 16
 
-            stime = time-last_time+dt*16
+            stime = time - last_time + dt * 16
 
-            for j in range(len(dtm)-1):
-                if dtm[j]<=stime and dtm[j+1]>=stime:
-                    percent = (stime-dtm[j])/(dtm[j+1]-dtm[j])
-                    positions = npositions[j]*(1-percent) + npositions[j+1]*percent
-                    velocities = nvelocities[j]*(1-percent) + nvelocities[j+1]*percent
+            for j in range(len(dtm) - 1):
+                if dtm[j] <= stime <= dtm[j + 1]:
+                    percent = (stime - dtm[j]) / (dtm[j + 1] - dtm[j])
+                    positions = npositions[j] * (1 - percent) + npositions[j + 1] * percent
+                    velocities = nvelocities[j] * (1 - percent) + nvelocities[j + 1] * percent
                     break
 
             kinetic_energies[:, i] = calculate_kinetic_energies(masses, velocities)
