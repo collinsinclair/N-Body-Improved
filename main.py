@@ -50,7 +50,7 @@ def faketype_intro():
     os.system('cls' if os.name == 'nt' else 'clear')
     # roll the text onto the screen as if it's being typed by someone
     input(faketype(
-        "Welcome to Collin's N-Body Gravity Simulation! Press return to continue.", newline=False))
+        "Welcome to Snorto's N-Body Gravity Simulation! Press return to continue.", newline=False))
     input(faketype(
         "This program simulates the time evolution of various gravitational systems like the Sun and Moon, "
         "a planetesimal disk, or a star cluster. [return]", newline=False))
@@ -95,6 +95,8 @@ def faketype_system_menu():
         """9. Tiny Cluster
     - initial conditions for a (very) cartoon model
     of stellar cluster""", 0.001)
+    faketype("10. Who is Snorto?")
+    faketype("11: Quit")
     faketype("--------------------")
 
 
@@ -287,6 +289,22 @@ def simulate_tiny_cluster():
     return masses, positions, velocities, duration, speed
 
 
+def goodbye():
+    # clear the screen
+    os.system('cls' if os.name == 'nt' else 'clear')
+    # get path to video directory
+    video_dir = os.path.join(os.getcwd(), "videos")
+    # get size of video directory
+    size = 0
+    for path, dirs, files in os.walk(video_dir):
+        for f in files:
+            fp = os.path.join(path, f)
+            size += os.path.getsize(fp)
+    faketype(
+        f"Your videos are stored in {video_dir}, and they take up {size / 1e6:.1f} MB.")
+    faketype("Thank you for using the simulation!")
+
+
 def select_system():
     system_options = ["SunEarth", "SunEarthMoon", "Kepler16", "RandomCube",
                       "UniformCube", "Pythagorean", "Figure8", "PlanetesimalDisk", "TinyCluster"]
@@ -297,7 +315,7 @@ def select_system():
     while not valid_choice:
         try:
             system = int(system)
-            if system < 0 or system > 9:
+            if system < 1 or system > 11:
                 system = input(
                     "Invalid choice. Please enter a number between 1 and 9: ")
             else:
@@ -351,6 +369,15 @@ def select_system():
         faketype("--------------------")
         faketype("Tiny Cluster")
         return simulate_tiny_cluster(), system_options[system - 1]
+    elif system == 10:
+        print("""SNORTO
+        The year was 2019. Collin, Brandon, and some others (our roommates and Collin's girlfriend) were headed to a
+        crag in Boulder Canyon called Solaris for a fun day of rock climbing. In the car on the way, Brandon asked, 
+        "Where are we going again? Snor-toes?" We all had a good laugh, and Snorto has referred to the inhabitants Unit
+        3311 ever since.""")
+    elif system == 11:
+        goodbye()
+        sys.exit(0)
 
 
 def main():
@@ -360,7 +387,11 @@ def main():
     while cont:
         # clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        (masses, positions, velocities, duration, speed), name = select_system()
+        try:
+            (masses, positions, velocities, duration, speed), name = select_system()
+        except TypeError:
+            input('[return]')
+            continue
         faketype("--------------------")
         rungekutta.animate(masses, positions, velocities,
                            duration, speed, name)
@@ -368,19 +399,7 @@ def main():
         while cont != "y" and cont != "n":
             cont = input("Would you like to run another simulation? (y/n) ")
         if cont == "n":
-            # clear the screen
-            os.system('cls' if os.name == 'nt' else 'clear')
-            # get path to video directory
-            video_dir = os.path.join(os.getcwd(), "videos")
-            # get size of video directroy
-            size = 0
-            for path, dirs, files in os.walk(video_dir):
-                for f in files:
-                    fp = os.path.join(path, f)
-                    size += os.path.getsize(fp)
-            faketype(
-                f"Your videos are stored in {video_dir}, and they take up {size / 1e6:.1f} MB.")
-            faketype("Thank you for using the simulation!")
+            goodbye()
             cont = False
 
 
