@@ -2,7 +2,7 @@
 
 by Collin Sinclair and Brandon Korb (collectively, Snorto - see option 10 in the menu ;) )
 
-More info [here](collinsinclair.github.io/N-Body-Improved).
+More info [here](https://collinsinclair.github.io/N-Body-Improved).
 
 ----------
 Welcome to my new-and-improved N-Body Simulation application! This command line-based app will walk you through selecting a customizing an N-body simulation of any of the following varieties:
