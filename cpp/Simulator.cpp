@@ -514,6 +514,7 @@ SimStep update_particles_recursive(double *masses, Tensor<Vector> positions, Ten
 	for(int i = 0; i<n_particles; i++){
 		maxerror = max(maxerror, (n1[0][i] + n2[0][i] - prev[i]).mag()/(n1[0][i] + n2[0][i]).mag());
 	}
+	//cout << "MaxError: " << maxerror << endl;
 	if(maxerror > 1e-2 and nmax>0){
     	SimStep Nn1 = update_particles_recursive(masses, positions, velocities, dt / 2, n1[0], nmax-1, time);
     	SimStep Nn2 = update_particles_recursive(masses, Nn1.parray[Nn1.n-1], Nn1.varray[Nn1.n-1], dt / 2, positions + n1[0] + n2[0] - Nn1.parray[Nn1.n-1], nmax-1, Nn1.tarray[Nn1.n-1]);
@@ -572,7 +573,7 @@ public:
 		time += dt;
 		while(time > last_time){
             data = update_particles(masses, positionsT, velocitiesT, dt * 16);
-            //cout << data.n << endl;
+            //cout << "Depth: " << data.n << endl;
             last_time += dt * 16;
         }
         double stime = time - last_time + dt * 16;
@@ -581,7 +582,7 @@ public:
         positionsT = state[0];
         convert(positions, positionsT);
         velocitiesT = state[1];
-        convert(velocities, positionsT);
+        convert(velocities, velocitiesT);
 	}
 
 	py::list getPositions(){
