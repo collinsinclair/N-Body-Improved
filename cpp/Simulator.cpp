@@ -132,6 +132,7 @@ public:
 	}
 
 	void operator=(const Vector &other){
+		if(n>0) delete[] array;
 		n = other.n;
 		array = new double[n];
 		for(int i = 0; i<n; i++){
@@ -287,6 +288,7 @@ public:
 	}
 
 	void operator=(const Tensor<T> &other){
+		if(n>0) delete[] array;
 		n = other.n;
 		array = new T[n];
 		for(int i = 0; i<n; i++){
@@ -393,6 +395,7 @@ public:
 	}
 
 	void operator=(const Splitter<T> &other){
+		if(n>0) delete[] array;
 		n = other.n;
 		array = new T[n];
 		for(int i = 0; i<n; i++){
@@ -567,6 +570,10 @@ public:
 		this->last_time = 0;
 		this->time = 0;
 		this->data = SimStep();
+	}
+
+	~simulator(){
+		delete[] masses;
 	}
 
 	void stepForward(){
