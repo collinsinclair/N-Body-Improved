@@ -572,7 +572,7 @@ public:
 		time += dt;
 		while(time > last_time){
             data = update_particles(masses, positionsT, velocitiesT, dt * 16);
-            cout << data.n << endl;
+            //cout << data.n << endl;
             last_time += dt * 16;
         }
         double stime = time - last_time + dt * 16;
