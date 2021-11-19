@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
+from cpp import Simulator
 from src import forces
 
 
@@ -154,20 +155,14 @@ def animate(masses, positions, velocities, duration, speed, name):
         npositions = np.array([positions])
         nvelocities = np.array([velocities])
 
+        simulator = Simulator.simulator(masses.tolist(), positions.flatten().tolist(), velocities.flatten().tolist(), dt, n_particles)
+
         for i in tqdm(range(len(times_in_days))):
             time = times_in_secs[i]
-            while time - last_time + dt * 16 > dtm[-1]:
-                npositions, nvelocities, dtm = update_particles(masses, npositions[-1], nvelocities[-1], dt * 16)
-                last_time += dt * 16
-
-            stime = time - last_time + dt * 16
-
-            for j in range(len(dtm) - 1):
-                if dtm[j] <= stime <= dtm[j + 1]:
-                    percent = (stime - dtm[j]) / (dtm[j + 1] - dtm[j])
-                    positions = npositions[j] * (1 - percent) + npositions[j + 1] * percent
-                    velocities = nvelocities[j] * (1 - percent) + nvelocities[j + 1] * percent
-                    break
+            
+            simulator.stepForward()
+            positions = np.array(simulator.getPositions()).reshape((n_particles, n_dimensions))
+            velocities = np.array(simulator.getVelocities()).reshape((n_particles, n_dimensions))
 
             kinetic_energies[:, i] = calculate_kinetic_energies(masses, velocities)
 
