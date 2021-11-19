@@ -158,7 +158,6 @@ def animate(masses, positions, velocities, duration, speed, name):
             time = times_in_secs[i]
             while time - last_time + dt * 16 > dtm[-1]:
                 npositions, nvelocities, dtm = update_particles(masses, npositions[-1], nvelocities[-1], dt * 16)
-                print(npositions.shape)
                 last_time += dt * 16
 
             stime = time - last_time + dt * 16
