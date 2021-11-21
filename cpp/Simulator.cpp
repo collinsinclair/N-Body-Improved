@@ -118,6 +118,17 @@ public:
 		this->n = n;
 	}
 
+	SimStep(double *p0, double *v0, double t0, int n){
+		parray = new double*[1];
+		parray[0] = p0;
+		varray = new double*[1];
+		varray[0] = v0;
+		tarray = new double[1];
+		tarray[0] = t0;
+		depth = 1;
+		this->n = n;
+	}
+
 	SimStep(double *p0, double *p1, double *v0, double *v1, double t0, double t1, int n){
 		parray = new double*[2];
 		parray[0] = p0;
@@ -304,10 +315,10 @@ SimStep update_particles_recursive(double *masses, double *positions, double *ve
 	double *tp1 = sumTensors(positions, n1[0], n);
 	double *tv1 = sumTensors(velocities, n1[1], n);
 	double **n2 = rungekutta(masses, tp1, tv1, n, dt / 2.0);
-	delete[] tp1;
-	delete[] tv1;
 	double *dp = sumTensors(n1[0], n2[0], n);
 	if(nmax>0 && maxError(dp, prev, n) > 1e-3){
+		delete[] tp1;
+		delete[] tv1;
     	SimStep Nn1 = update_particles_recursive(masses, positions, velocities, n, dt / 2, n1[0], nmax-1, time);
     	for(int i = 0; i<2; i++){
     		delete[] n1[i];
@@ -325,7 +336,13 @@ SimStep update_particles_recursive(double *masses, double *positions, double *ve
     	return ret;
 	}else{
 		delete dp;
-    	ret = SimStep(n1[0], n2[0], n1[1], n2[1], dt/2.0, dt/2.0, n).cumSum(copyArr(positions, n), copyArr(velocities, n), time);
+		double *tp2 = sumTensors(tp1, n2[0], n);
+		double *tv2 = sumTensors(tv1, n2[1], n);
+    	ret = SimStep(tp1, tp2, tv1, tv2, time+dt/2.0, time+dt, n);
+    	for(int i = 0; i<2; i++){
+    		delete[] n1[i];
+    		delete[] n2[i];
+    	}
     	delete[] n1;
     	delete[] n2;
     	return ret;
@@ -334,7 +351,7 @@ SimStep update_particles_recursive(double *masses, double *positions, double *ve
 
 SimStep update_particles(double *masses, double *positions, double *velocities, int n, double dt){
     double **na = rungekutta(masses, positions, velocities, n, dt);
-    SimStep ret = update_particles_recursive(masses, positions, velocities, n, dt, na[0], 20, 0);
+    SimStep ret = SimStep(positions, velocities, 0, n) + update_particles_recursive(masses, positions, velocities, n, dt, na[0], 20, 0);
     delete[] na[0];
     delete[] na[1];
     delete[] na;
@@ -367,6 +384,7 @@ public:
 	double last_time;
 	double time;
 	int n;
+
 	simulator(py::list &masses, py::list &positions, py::list &velocities, double dt, int n){
 		this->n = n;
 		this->masses = new double[n];
