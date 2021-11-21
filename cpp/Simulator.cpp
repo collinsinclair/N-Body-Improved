@@ -65,9 +65,6 @@ class SimStep{
 public:
 	int n;
 	int depth;
-	double *pfinal;
-	double *vfinal;
-	double tfinal;
 	double **parray;
 	double **varray;
 	double *tarray;
@@ -81,6 +78,7 @@ public:
 			delete[] parray;
 			delete[] varray;
 			delete[] tarray;
+			depth = 0;
 		}
 	}
 
@@ -93,8 +91,6 @@ public:
 			delete[] parray;
 			delete[] varray;
 			delete[] tarray;
-			delete[] pfinal;
-			delete[] vfinal;
 			depth = 0;
 		}
 	}
@@ -111,19 +107,13 @@ public:
 				varray[i] = other.varray[i];
 				tarray[i] = other.tarray[i];
 			}
-			pfinal = copyArr(other.pfinal, n);
-			vfinal = copyArr(other.vfinal, n);
-			tfinal = other.tfinal;
 		}
 	}
 
-	SimStep(double **parray, double **varray, double *tarray, double *pfinal, double *vfinal, double tfinal, int depth, int n){
+	SimStep(double **parray, double **varray, double *tarray, int depth, int n){
 		this->parray = parray;
 		this->varray = varray;
 		this->tarray = tarray;
-		this->pfinal = pfinal;
-		this->vfinal = vfinal;
-		this->tfinal = tfinal;
 		this->depth = depth;
 		this->n = n;
 	}
@@ -132,15 +122,12 @@ public:
 		parray = new double*[2];
 		parray[0] = p0;
 		parray[1] = p1;
-		pfinal = sumTensors(p0, p1, n);
 		varray = new double*[2];
 		varray[0] = v0;
 		varray[1] = v1;
-		vfinal = sumTensors(v0, v1, n);
 		tarray = new double[2];
 		tarray[0] = t0;
 		tarray[1] = t1;
-		tfinal = t0+t1;
 		depth = 2;
 		this->n = n;
 	}
@@ -149,9 +136,6 @@ public:
 		double **np = new double*[depth+other.depth];
 		double **nv = new double*[depth+other.depth];
 		double *nt = new double[depth+other.depth];
-		double *pf = sumTensors(pfinal, other.pfinal, n);
-		double *vf = sumTensors(vfinal, other.vfinal, n);
-		double tf = tfinal+other.tfinal;
 		for(int i = 0; i<depth; i++){
 			np[i] = parray[i];
 			nv[i] = varray[i];
@@ -162,7 +146,7 @@ public:
 			nv[i+depth] = other.varray[i];
 			nt[i+depth] = other.tarray[i];
 		}
-		return SimStep(np, nv, nt, pf, vf, tf, depth+other.depth, n);
+		return SimStep(np, nv, nt, depth+other.depth, n);
 	}
 
 	void update(double t, double *positions, double *velocities, int n){
@@ -215,8 +199,6 @@ public:
 			delete[] parray;
 			delete[] varray;
 			delete[] tarray;
-			delete[] pfinal;
-			delete[] vfinal;
 		}
 		n = other.n;
 		depth = other.depth;
@@ -229,9 +211,6 @@ public:
 				varray[i] = other.varray[i];
 				tarray[i] = other.tarray[i];
 			}
-			pfinal = copyArr(other.pfinal, n);
-			vfinal = copyArr(other.vfinal, n);
-			tfinal = other.tfinal;
 		}
 	}
 };
