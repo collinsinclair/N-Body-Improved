@@ -3,6 +3,8 @@
 //namespace py = pybind11;
 #include <math.h>
 #include <iostream>
+#include <ctime>
+#include <string>
 
 using namespace std;
 
@@ -10,537 +12,367 @@ using namespace std;
 
 namespace py = pybind11;
 
+double *sumTensors(double *tensor1, double *tensor2, int n){
+	double *newtensor = new double[n*3];
+	for(int i = 0; i<n*3; i++){
+		newtensor[i] = tensor1[i] + tensor2[i];
+	}
+	return newtensor;
+}
 
-class Vector{
+double *scalarMultTensor(double *tensor, double scalar, int n){
+	double *newtensor = new double[n*3];
+	for(int i = 0; i<n*3; i++){
+		newtensor[i] = tensor[i] * scalar;
+	}
+	return newtensor;
+}
+
+double *sumScalarMultTensor(double *tensor, double *tensor2, double scalar, int n){
+	double *newtensor = new double[n*3];
+	for(int i = 0; i<n*3; i++){
+		newtensor[i] = tensor[i] + tensor2[i] * scalar;
+	}
+	return newtensor;
+}
+
+double *copyArr(double *original, int n){
+	double *na = new double[n*3];
+	for(int i = 0; i<n*3; i++){
+		na[i] = original[i];
+	}
+	return na;
+}
+
+class Timer{
 public:
-	double *array;
-	int n;
-	Vector(){
-		n = 3;
-		array = new double[3];
-		for(int i = 0; i<3; i++){
-			array[i] = 0;
-		}
+	double t;
+	Timer(){
+		t = clock();
 	}
-
-	Vector(int n){
-		this->n = n;
-		array = new double[n];
-		for(int i = 0; i<n; i++){
-			array[i] = 0;
-		}
+	void start(){
+		t = clock();
 	}
-
-	Vector(double x, double y, double z){
-		n = 3;
-		array = new double[3];
-		array[0] = x;
-		array[1] = y;
-		array[2] = z;
+	void time(){
+		cout << "Time since start: " << (clock()-t) << endl;
 	}
-
-	Vector(double *array, int n){
-		this->n = n;
-		this->array = new double[n];
-		for(int i = 0; i<n; i++){
-			this->array[i] = array[i];
-		}
-	}
-
-	Vector(const Vector &other){
-		n = other.n;
-		array = new double[n];
-		for(int i = 0; i<n; i++){
-			array[i] = other.array[i];
-		}
-	}
-
-	~Vector(){
-		//cout << "Deleting Vector" << endl;
-		if(n>0){
-			//cout << n << endl;
-			delete[] array;
-		}
-		//cout << "Vector Deleted" << endl;
-	}
-
-	Vector operator+(Vector other){
-		if(this->n == other.n){
-			double *na = new double[this->n];
-			for(int i = 0; i<this->n; i++){
-				na[i] = this->array[i] + other.array[i];
-			}
-			Vector ret(na, this->n);
-			delete[] na;
-			return ret;
-		}
-		Vector ret(0);
-		return ret;
-	}
-
-	Vector operator-(Vector other){
-		if(this->n == other.n){
-			double *na = new double[n];
-			for(int i = 0; i<this->n; i++){
-				na[i] = this->array[i] - other.array[i];
-			}
-			Vector ret(na, this->n);
-			delete[] na;
-			return ret;
-		}
-		Vector ret(0);
-		return ret;
-	}
-
-	double operator*(Vector other){
-		if(this->n == other.n){
-			double na = 0;
-			for(int i = 0; i<n; i++){
-				na += this->array[i] * other.array[i];
-			}
-			return na;
-		}
-		return 0;
-	}
-
-	Vector operator*(double other){
-		double *na = new double[this->n];
-		for(int i = 0; i<this->n; i++){
-			na[i] = this->array[i] * other;
-		}
-		Vector ret(na, this->n);
-		delete[] na;
-		return ret;
-	}
-
-	Vector operator/(double other){
-		double *na = new double[this->n];
-		for(int i = 0; i<this->n; i++){
-			na[i] = this->array[i] / other;
-		}
-		Vector ret(na, this->n);
-		delete[] na;
-		return ret;
-	}
-
-	double mag(){
-		return pow((*this)*(*this), 0.5);
-	}
-
-	double &operator[](int i){
-		return array[i];
-	}
-
-	void operator=(const Vector &other){
-		if(n>0) delete[] array;
-		n = other.n;
-		array = new double[n];
-		for(int i = 0; i<n; i++){
-			array[i] = other.array[i];
-		}
-	}
-};
-
-template <typename T>
-class Tensor{
-public:
-	int n;
-	T *array;
-
-	Tensor(){
-		n = 0;
-	}
-
-	Tensor(const Tensor<T> &t){
-		n = t.n;
-		array = new T[n];
-		for(int i = 0; i<n; i++){
-			array[i] = t.array[i];
-		}
-	}
-
-	Tensor(int n){
-		this->n = n;
-		this->array = new T[n];
-	}
-
-	Tensor(int n, int m){
-		this->n = n;
-		this->array = new Vector[n];
-		for(int i = 0; i<n; i++){
-			this->array[i] = Vector(m);
-		}
-	}
-
-	Tensor(T *array, int n){
-		this->n = n;
-		this->array = new T[n];
-		for(int i = 0; i<n; i++){
-			this->array[i] = array[i];
-		}
-	}
-
-	Tensor(double **array, int n){
-		this->n = n;
-		this->array = new T[n];
-		for(int i = 0; i<n; i++){
-			this->array[i] = Vector(array[i], 3);
-		}
-	}
-
-	Tensor(py::list &array, int n, int m){
-		this->n = n;
-		this->array = new T[n];
-		for(int i = 0; i<n; i++){
-			double *na = new double[3];
-			for(int j = 0; j<m; j++){
-				na[j] = array[m*i+j].cast<double>();
-			}
-			this->array[i] = Vector(na, m);
-		}
-	}
-
-	~Tensor(){
-		//cout << "Deleting Tensor" << endl;
-		if(n>0){
-			//cout << n << endl;
-			delete[] array;
-		}
-		//cout << "Tensor Deleted" << endl;
-	}
-
-	template <typename U>
-	Tensor operator+(Tensor<U> other){
-		if(this->n == other.n){
-			T *na = new T[n];
-			for(int i = 0; i<n; i++){
-				na[i] = this->array[i] + other.array[i];
-			}
-			Tensor<T> ret(na, n);
-			delete[] na;
-			return ret;
-		}
-		return Tensor<T>();
-	}
-
-	template <typename U>
-	Tensor operator-(Tensor<U> other){
-		if(this->n == other.n){
-			T *na = new T[n];
-			for(int i = 0; i<n; i++){
-				na[i] = this->array[i] - other.array[i];
-			}
-			Tensor<T> ret(na, n);
-			delete[] na;
-			return ret;
-		}
-		return Tensor<T>();
-	}
-
-	template <typename U>
-	Tensor operator*(Tensor<U> other){
-		if(this->n == other.n){
-			T *na = new T[n];
-			for(int i = 0; i<n; i++){
-				na[i] = this->array[i] * other.array[i];
-			}
-			Tensor<T> ret(na, n);
-			delete[] na;
-			return ret;
-		}
-	}
-
-	Tensor operator*(double other){
-		T *na = new T[n];
-		for(int i = 0; i<n; i++){
-			na[i] = this->array[i] * other;
-		}
-		Tensor<T> ret(na, n);
-		delete[] na;
-		return ret;
-	}
-
-	template <typename U>
-	Tensor operator/(Tensor<U> other){
-		if(this->n == other.n){
-			T *na = new T[n];
-			for(int i = 0; i<n; i++){
-				na[i] = this->array[i] / other.array[i];
-			}
-			Tensor<T> ret(na, n);
-			delete[] na;
-			return ret;
-		}
-	}
-
-	Tensor operator/(double other){
-		T *na = new T[n];
-		for(int i = 0; i<n; i++){
-			na[i] = this->array[i] / other;
-		}
-		Tensor<T> ret(na, n);
-		delete[] na;
-		return ret;
-	}
-
-	T &operator[](int index){
-		return array[index];
-	}
-
-	void operator=(const Tensor<T> &other){
-		if(n>0) delete[] array;
-		n = other.n;
-		array = new T[n];
-		for(int i = 0; i<n; i++){
-			array[i] = other.array[i];
-		}
-	}
-};
-
-template <typename T>
-class Splitter{
-public:
-	int n;
-	T *array;
-
-	Splitter(const Splitter<T> &other){
-		n = other.n;
-		array = new T[n];
-		for(int i = 0; i<n; i++){
-			array[i] = other.array[i];
-		}
-	}
-
-	Splitter(){
-		n = 0;
-	}
-
-	Splitter(T first){
-		this->n = 1;
-		this->array = new T[1];
-		this->array[0] = first;
-	}
-
-	Splitter(T first, T second){
-		n = 2;
-		array = new T[2];
-		array[0] = first;
-		//cout << "First set" << endl;
-		array[1] = second;
-		//cout << "Second set" << endl;
-	}
-
-	Splitter(T *array, int n){
-		this->n = n;
-		this->array = new T[n];
-		for(int i = 0; i<n; i++){
-			this->array[i] = array[i];
-		}
-	}
-
-	~Splitter(){
-		//cout << "Deleting Splitter" << endl;
-		if(n>0){
-			//cout << n << endl;
-			delete[] array;
-		}
-		//cout << "Splitter Deleted" << endl;
-	}
-
-	Splitter<T> replace(int i, Splitter<T> other){
-		int nn = this->n+other.n-1;
-		T *na = new T[nn];
-		for(int j = 0; j<i; j++){
-			na[j] = this->array[j];
-		}
-		for(int j = 0; j<other.n; j++){
-			na[i+j] = other.array[j];
-		}
-		for(int j = i+1; j<this->n; j++){
-			na[other.n+j-1] = this->array[j];
-		}
-		Splitter ret(na, nn);
-		delete[] na;
-		return ret;
-	}
-
-	Splitter<T> operator+(Splitter<T> other){
-		int nn = this->n+other.n;
-		T *na = new T[nn];
-		for(int j = 0; j<this->n; j++){
-			na[j] = this->array[j];
-		}
-		for(int j = 0; j<other.n; j++){
-			na[this->n+j] = other.array[j];
-		}
-		Splitter ret(na, nn);
-		delete[] na;
-		return ret;
-	}
-
-	Splitter<T> operator+(T other){
-		int nn = this->n+1;
-		T *na = new T[nn];
-		for(int j = 0; j<this->n; j++){
-			na[j] = this->array[j];
-		}
-		na[this->n] = other;
-		Splitter ret(na, nn);
-		delete[] na;
-		return ret;
-	}
-
-	T &operator[](int i){
-		return array[i];
-	}
-
-	void operator=(const Splitter<T> &other){
-		if(n>0) delete[] array;
-		n = other.n;
-		array = new T[n];
-		for(int i = 0; i<n; i++){
-			array[i] = other.array[i];
-		}
+	void time(string task){
+		cout << "Time to " << task << ": " << (clock()-t) << endl;
 	}
 };
 
 class SimStep{
 public:
 	int n;
-	Splitter<Tensor<Vector> > parray;
-	Splitter<Tensor<Vector> > varray;
-	Splitter<double> tarray;
+	int depth;
+	double *pfinal;
+	double *vfinal;
+	double tfinal;
+	double **parray;
+	double **varray;
+	double *tarray;
 
 	SimStep(){
-		n = 0;
-		//parray = Splitter<Tensor<Vector> >();
-		//varray = Splitter<Tensor<Vector> >();
-		//tarray = Splitter<double>();
+		depth = 0;
 	}
 
-	SimStep(Splitter<Tensor<Vector> > parray, Splitter<Tensor<Vector> > varray, Splitter<double> tarray){
+	~SimStep(){
+		if(depth > 0){
+			delete[] parray;
+			delete[] varray;
+			delete[] tarray;
+		}
+	}
+
+	void obliterate(){
+		if(depth > 0){
+			for(int i = 0; i<depth; i++){
+				delete[] parray[i];
+				delete[] varray[i];
+			}
+			delete[] parray;
+			delete[] varray;
+			delete[] tarray;
+			delete[] pfinal;
+			delete[] vfinal;
+			depth = 0;
+		}
+	}
+
+	SimStep(const SimStep &other){
+		n = other.n;
+		depth = other.depth;
+		if(depth > 0){
+			parray = new double*[depth];
+			varray = new double*[depth];
+			tarray = new double[depth];
+			for(int i = 0; i<depth; i++){
+				parray[i] = other.parray[i];
+				varray[i] = other.varray[i];
+				tarray[i] = other.tarray[i];
+			}
+			pfinal = copyArr(other.pfinal, n);
+			vfinal = copyArr(other.vfinal, n);
+			tfinal = other.tfinal;
+		}
+	}
+
+	SimStep(double **parray, double **varray, double *tarray, double *pfinal, double *vfinal, double tfinal, int depth, int n){
 		this->parray = parray;
 		this->varray = varray;
 		this->tarray = tarray;
-		this->n = this->parray.n;
+		this->pfinal = pfinal;
+		this->vfinal = vfinal;
+		this->tfinal = tfinal;
+		this->depth = depth;
+		this->n = n;
 	}
 
-	/*~SimStep(){
-		cout << "Deleting SimStep" << endl;
-		if(n>0){
-			delete &parray;
-			cout << "parray deleted" << endl;
-			delete &varray;
-			cout << "varray deleted" << endl;
-			delete &tarray;
-		}
-	}*/
+	SimStep(double *p0, double *p1, double *v0, double *v1, double t0, double t1, int n){
+		parray = new double*[2];
+		parray[0] = p0;
+		parray[1] = p1;
+		pfinal = sumTensors(p0, p1, n);
+		varray = new double*[2];
+		varray[0] = v0;
+		varray[1] = v1;
+		vfinal = sumTensors(v0, v1, n);
+		tarray = new double[2];
+		tarray[0] = t0;
+		tarray[1] = t1;
+		tfinal = t0+t1;
+		depth = 2;
+		this->n = n;
+	}
 
 	SimStep operator+(SimStep other){
-		return SimStep(parray + other.parray, varray + other.varray, tarray + other.tarray);
+		double **np = new double*[depth+other.depth];
+		double **nv = new double*[depth+other.depth];
+		double *nt = new double[depth+other.depth];
+		double *pf = sumTensors(pfinal, other.pfinal, n);
+		double *vf = sumTensors(vfinal, other.vfinal, n);
+		double tf = tfinal+other.tfinal;
+		for(int i = 0; i<depth; i++){
+			np[i] = parray[i];
+			nv[i] = varray[i];
+			nt[i] = tarray[i];
+		}
+		for(int i = 0; i<other.depth; i++){
+			np[i+depth] = other.parray[i];
+			nv[i+depth] = other.varray[i];
+			nt[i+depth] = other.tarray[i];
+		}
+		return SimStep(np, nv, nt, pf, vf, tf, depth+other.depth, n);
 	}
 
-	Tensor<Tensor<Vector> > operator[](double t){
-		Tensor<Tensor<Vector> > ret(2);
-		for(int i = 0; i<n - 1; i++){
+	void update(double t, double *positions, double *velocities, int n){
+		for(int i = 0; i<depth - 1; i++){
 			if(tarray[i] <= t && tarray[i+1] >= t){
 				double frac = (t - tarray[i])/(tarray[i+1] - tarray[i]);
-				ret[0] = parray[i]*(1-frac) + parray[i+1]*(frac);
-				ret[1] = varray[i]*(1-frac) + varray[i+1]*(frac);
+				for(int j = 0; j<n*3; j++){
+					positions[j] = parray[i][j]*(1-frac) + parray[i+1][j]*(frac);
+					velocities[j] = varray[i][j]*(1-frac) + varray[i+1][j]*(frac);
+				}
 				break;
 			}
 		}
-		return ret;
 	}
 
-	SimStep cumSum(Tensor<Vector> positions, Tensor<Vector> velocities, double time){
-		Splitter<Tensor<Vector> > prunner(positions);
-		Splitter<Tensor<Vector> > vrunner(velocities);
-		Splitter<double> trunner(time);
-		for(int i = 0; i<this->n; i++){
-			prunner = prunner + (prunner[i] + this->parray[i]);
-			vrunner = vrunner + (vrunner[i] + this->varray[i]);
-			trunner = trunner + (trunner[i] + this->tarray[i]);
+	SimStep cumSum(double *positions, double *velocities, double time){
+		double **np = new double*[depth+1];
+		double **nv = new double*[depth+1];
+		double *nt = new double[depth+1];
+		np[0] = positions;
+		nv[0] = velocities;
+		nt[0] = time;
+		for(int i = 0; i<depth; i++){
+			np[i+1] = sumTensors(np[i], parray[i], n);
+			delete[] parray[i];
+			nv[i+1] = sumTensors(nv[i], varray[i], n);
+			delete[] varray[i];
+			nt[i+1] = nt[i]+tarray[i];
 		}
-		return SimStep(prunner, vrunner, trunner);
+		delete[] parray;
+		delete[] varray;
+		delete[] tarray;
+		parray = np;
+		varray = nv;
+		tarray = nt;
+		depth++;
+		return *this;
 	}
 
 	void printTimes(){
 		cout << "T: ";
-		for(int i = 0; i<n; i++){
+		for(int i = 0; i<depth; i++){
 			cout << tarray[i] << ", ";
 		}
 		cout << endl;
 	}
+
+	void operator=(const SimStep &other){
+		if(depth>0){
+			delete[] parray;
+			delete[] varray;
+			delete[] tarray;
+			delete[] pfinal;
+			delete[] vfinal;
+		}
+		n = other.n;
+		depth = other.depth;
+		if(depth > 0){
+			parray = new double*[depth];
+			varray = new double*[depth];
+			tarray = new double[depth];
+			for(int i = 0; i<depth; i++){
+				parray[i] = other.parray[i];
+				varray[i] = other.varray[i];
+				tarray[i] = other.tarray[i];
+			}
+			pfinal = copyArr(other.pfinal, n);
+			vfinal = copyArr(other.vfinal, n);
+			tfinal = other.tfinal;
+		}
+	}
 };
 
-Tensor<Vector> calculate_acceleration(double *masses, Tensor<Vector> positions){
-    int N = positions.n;
-    double G = 6.67e-11;
-    Tensor<Vector> acc(N, 3);
-    for(int i = 0; i<N; i++){
-        for(int j = 0; j<N; j++){
-            if(j != i){
-            	double r = (positions[i]-positions[j]).mag();
-            	double magnitude = G*masses[j]/pow(r, 3);
-            	acc.array[i] = acc.array[i] + (positions[j] - positions[i])*(magnitude);
-            }
+double *calculate_acceleration(double *masses, double *positions, int n){
+	double G = 6.67e-11;
+    double *acc = new double[n*3];
+    for(int i = 0; i<n*3; i++){
+    	acc[i] = 0;
+    }
+    for(int i = 0; i<n; i++){
+	    for(int j = i+1; j<n; j++){
+        	double r = 0;
+        	for(int k = 0; k<3; k++){
+        		r += pow(positions[i*3+k]-positions[j*3+k], 2);
+        	}
+        	double magnitude = pow(r, -1.5);
+        	for(int k = 0; k<3; k++){
+        		double kmagnitude = magnitude*(positions[j*3+k] - positions[i*3+k]);
+        		acc[i*3+k] += masses[j]*kmagnitude;
+        		acc[j*3+k] -= masses[i]*kmagnitude;
+        	}
     	}
+    }
+    for(int i = 0; i<n*3; i++){
+    	acc[i] *= G;
     }
     return acc;
 }
 
-Tensor<Tensor<Vector> > rungekutta(double *masses, Tensor<Vector> positions, Tensor<Vector> velocities, double dt){
-    Tensor<Vector> kv0 = calculate_acceleration(masses, positions);
-    Tensor<Vector> kr0 = velocities;
-    Tensor<Vector> kv1 = calculate_acceleration(masses, positions + kr0 * (dt / 2.0));
-    Tensor<Vector> kr1 = velocities + kv0 * (dt / 2.0);
-    Tensor<Vector> kv2 = calculate_acceleration(masses, positions + kr1 * (dt / 2.0));
-    Tensor<Vector> kr2 = velocities + kv1 * (dt / 2.0);
-    Tensor<Vector> kv3 = calculate_acceleration(masses, positions + kr2 * dt);
-    Tensor<Vector> kr3 = velocities + kv2 * dt;
-    Tensor<Vector> nv = (kv0 + kv1*2.0 + kv2*2.0 + kv3) * (dt/6.0);
-    Tensor<Vector> nr = (kr0 + kr1*2.0 + kr2*2.0 + kr3) * (dt/6.0);
-    Tensor<Tensor<Vector> > pair(2);
+double **rungekutta(double *masses, double *positions, double *velocities, int n, double dt){
+    double *kv0 = calculate_acceleration(masses, positions, n);
+
+    double *kr0 = velocities;
+
+    double *tp1 = sumScalarMultTensor(positions, kr0, dt/2.0, n);
+    double *kv1 = calculate_acceleration(masses, tp1, n);
+    delete[] tp1;
+
+    double *kr1 = sumScalarMultTensor(velocities, kv0, dt/2.0, n);
+
+    double *tp2 = sumScalarMultTensor(positions, kr1, dt/2.0, n);
+    double *kv2 = calculate_acceleration(masses, tp2, n);
+    delete[] tp2;
+
+    double *kr2 = sumScalarMultTensor(velocities, kv1, dt/2.0, n);
+
+    double *tp3 = sumScalarMultTensor(positions, kr2, dt, n);
+    double *kv3 = calculate_acceleration(masses, tp3, n);
+    delete[] tp3;
+
+    double *kr3 = sumScalarMultTensor(velocities, kv2, dt, n);
+
+    double *nr = new double[n*3];
+    double *nv = new double[n*3];
+    double factor = dt/6.0;
+    for(int i = 0; i<n*3; i++){
+    	nv[i] = (kv0[i] + kv1[i]*2.0 + kv2[i]*2.0 + kv3[i]) * factor;
+    	nr[i] = (kr0[i] + kr1[i]*2.0 + kr2[i]*2.0 + kr3[i]) * factor;
+	}
+	delete[] kv0;
+	delete[] kv1;
+	delete[] kv2;
+	delete[] kv3;
+	delete[] kr1;
+	delete[] kr2;
+	delete[] kr3;
+    double **pair = new double*[2];
     pair[0] = nr;
     pair[1] = nv;
     return pair;
 }
 
-SimStep update_particles_recursive(double *masses, Tensor<Vector> positions, Tensor<Vector> velocities, double dt, Tensor<Vector> prev, int nmax, double time){
-	SimStep ret;
-	int n_particles = positions.n;
-	Tensor<Tensor<Vector> > n1 = rungekutta(masses, positions, velocities, dt / 2);
-	Tensor<Tensor<Vector> > n2 = rungekutta(masses, positions + n1[0], velocities + n1[1], dt / 2);
-	//cout << "Second runges" << endl;
-	double maxerror = 0;
-	for(int i = 0; i<n_particles; i++){
-		maxerror = max(maxerror, (n1[0][i] + n2[0][i] - prev[i]).mag()/(n1[0][i] + n2[0][i]).mag());
+double maxError(double *curr, double *prev, int n){
+	double merr = 0;
+	for(int i = 0; i<n; i++){
+		double top = 0;
+		double bot = 0;
+		for(int k = 0; k<3; k++){
+			top += pow(curr[i*3+k]-prev[i*3+k], 2);
+			bot += pow(curr[i*3+k], 2);
+		}
+		merr = max(top/bot, merr);
 	}
-	//cout << "MaxError: " << maxerror << endl;
-	if(maxerror > 1e-2 and nmax>0){
-    	SimStep Nn1 = update_particles_recursive(masses, positions, velocities, dt / 2, n1[0], nmax-1, time);
-    	SimStep Nn2 = update_particles_recursive(masses, Nn1.parray[Nn1.n-1], Nn1.varray[Nn1.n-1], dt / 2, positions + n1[0] + n2[0] - Nn1.parray[Nn1.n-1], nmax-1, Nn1.tarray[Nn1.n-1]);
-    	//cout << "MORE ACCURACY" << endl;
+	return pow(merr, 0.5);
+}
+
+SimStep update_particles_recursive(double *masses, double *positions, double *velocities, int n, double dt, double *prev, int nmax, double time){
+	SimStep ret;
+	double **n1 = rungekutta(masses, positions, velocities, n, dt / 2.0);
+	double *tp1 = sumTensors(positions, n1[0], n);
+	double *tv1 = sumTensors(velocities, n1[1], n);
+	double **n2 = rungekutta(masses, tp1, tv1, n, dt / 2.0);
+	delete[] tp1;
+	delete[] tv1;
+	double *dp = sumTensors(n1[0], n2[0], n);
+	if(nmax>0 && maxError(dp, prev, n) > 1e-3){
+    	SimStep Nn1 = update_particles_recursive(masses, positions, velocities, n, dt / 2, n1[0], nmax-1, time);
+    	for(int i = 0; i<2; i++){
+    		delete[] n1[i];
+    		delete[] n2[i];
+    	}
+    	delete[] n1;
+    	delete[] n2;
+    	double *ap = sumTensors(positions, dp, n);
+    	double *tprev = sumScalarMultTensor(ap, Nn1.parray[Nn1.depth-1], -1, n);
+    	delete[] ap;
+    	delete[] dp;
+    	SimStep Nn2 = update_particles_recursive(masses, Nn1.parray[Nn1.depth-1], Nn1.varray[Nn1.depth-1], n, dt / 2, tprev, nmax-1, Nn1.tarray[Nn1.depth-1]);
+    	delete[] tprev;
     	ret = Nn1+Nn2;
     	return ret;
 	}else{
-    	ret = SimStep(Splitter<Tensor<Vector> >(n1[0], n2[0]), Splitter<Tensor<Vector> >(n1[1], n2[1]), Splitter<double>(dt / 2, dt / 2)).cumSum(positions, velocities, time);
+		delete dp;
+    	ret = SimStep(n1[0], n2[0], n1[1], n2[1], dt/2.0, dt/2.0, n).cumSum(copyArr(positions, n), copyArr(velocities, n), time);
+    	delete[] n1;
+    	delete[] n2;
     	return ret;
 	}
 }
 
-SimStep update_particles(double *masses, Tensor<Vector> positions, Tensor<Vector> velocities, double dt){
-    Tensor<Tensor<Vector> > n = rungekutta(masses, positions, velocities, dt);
-    //cout << "First Runge" << endl;
-    return update_particles_recursive(masses, positions, velocities, dt, n[0], 20, 0);
+SimStep update_particles(double *masses, double *positions, double *velocities, int n, double dt){
+    double **na = rungekutta(masses, positions, velocities, n, dt);
+    SimStep ret = update_particles_recursive(masses, positions, velocities, n, dt, na[0], 20, 0);
+    delete[] na[0];
+    delete[] na[1];
+    delete[] na;
+    return ret;
 }
 
-void convert(py::list &array, Tensor<Vector> &arrayT){
-	for(int i = 0; i<arrayT.n; i++){
-		for(int j = 0; j<3; j++){
-			array[i*3+j] = arrayT[i][j];
-		}
+double *createArray(py::list &array, int n){
+	double *arrayT = new double[n*3];
+	for(int i = 0; i<n*3; i++){
+		arrayT[i] = array[i].cast<double>();
+	}
+	return arrayT;
+}
+
+void convert(py::list &array, double *arrayT, int n){
+	for(int i = 0; i<n*3; i++){
+		array[i] = arrayT[i];
 	}
 }
 
@@ -549,8 +381,8 @@ public:
 	double *masses;
 	py::list positions;
 	py::list velocities;
-	Tensor<Vector> positionsT;
-	Tensor<Vector> velocitiesT;
+	double *positionsT;
+	double *velocitiesT;
 	double dt;
 	SimStep data;
 	double last_time;
@@ -564,8 +396,8 @@ public:
 		}
 		this->positions = positions;
 		this->velocities = velocities;
-		positionsT = Tensor<Vector>(positions, n, 3);
-		velocitiesT = Tensor<Vector>(velocities, n, 3);
+		positionsT = createArray(positions, n);
+		velocitiesT = createArray(velocities, n);
 		this->dt = dt;
 		this->last_time = 0;
 		this->time = 0;
@@ -579,17 +411,16 @@ public:
 	void stepForward(){
 		time += dt;
 		while(time > last_time){
-            data = update_particles(masses, positionsT, velocitiesT, dt * 16);
-            //cout << "Depth: " << data.n << endl;
+			data.obliterate();
+            data = update_particles(masses, copyArr(positionsT, n), copyArr(velocitiesT, n), n, dt * 16);
             last_time += dt * 16;
         }
         double stime = time - last_time + dt * 16;
-        Tensor<Tensor<Vector> > state = data[stime];
-        //cout << "State x: " << state[0][0][0] << endl;
-        positionsT = state[0];
-        convert(positions, positionsT);
-        velocitiesT = state[1];
-        convert(velocities, velocitiesT);
+        data.update(stime, positionsT, velocitiesT, n);
+        //printState();
+        //data.printTimes();
+        convert(positions, positionsT, n);
+        convert(velocities, velocitiesT, n);
 	}
 
 	py::list getPositions(){
@@ -602,11 +433,10 @@ public:
 
 	void printState(){
 		cout << "State at time: " << time << endl;
-		int n = positionsT.n;
 		for(int i = 0; i<n; i++){
 			cout << i << ": ";
 			for(int j = 0; j<3; j++){
-				cout << positionsT[i][j] << ", ";
+				cout << positionsT[i*3+j] << ", ";
 			}
 			cout << endl;
 		}
