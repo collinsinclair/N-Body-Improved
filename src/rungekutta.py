@@ -96,6 +96,10 @@ def calculate_potential_energies(masses, positions):
     return tot
 
 
+def calculate_range(distances):
+    return np.percentile(distances, 75)*1.1
+
+
 def animate(masses, positions, velocities, duration, speed, name):
     # make sure the three input arrays have consistent shapes
     n_particles, n_dimensions = positions.shape
@@ -139,6 +143,7 @@ def animate(masses, positions, velocities, duration, speed, name):
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
 
         # calculate the maximum distance of any of the particles from the origin
+        range_prev = calculate_range(distances)
         max_distance_prev = max(
             [np.abs(np.max(distances)), np.abs(np.min(distances))])
 
@@ -171,9 +176,11 @@ def animate(masses, positions, velocities, duration, speed, name):
             normed_distances = distances / np.max(distances)
 
             # this whole business keeps the axes on the same scale and (0,0,0) in the center
-            bound = max([np.abs(np.max(distances)), np.abs(
+            max_distance_prev = max([np.abs(np.max(distances)), np.abs(
                 np.min(distances)), max_distance_prev])
-            bound *= 1.1  # add a little padding
+            range_prev = max(range_prev, calculate_range(distances))
+            bound = min(range_prev, max_distance_prev * 1.1)
+            #bound *= 1.1  # add a little padding
 
             isometric.clear()
             isometric.set_xlabel("x")
