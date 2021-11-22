@@ -106,7 +106,9 @@ def animate(masses, positions, velocities, duration, speed, name):
     assert (velocities.shape == positions.shape)
     assert (len(masses) == n_particles)
 
-    dt = 86400 * speed * 365 / (60 * 15)
+    fps_ = 60
+
+    dt = 86400 * speed * 365 / (fps_ * 15)
 
     times_in_secs = np.arange(0, duration, dt)
     times_in_days = times_in_secs / 86400
@@ -116,7 +118,7 @@ def animate(masses, positions, velocities, duration, speed, name):
     # Determine the framerate that results in one year in the simulation taking 15 seconds
     # oneyear = 15
     # dt_in_days = dt / 86400
-    fps_ = 60  # round(speed * 365 / (oneyear * dt_in_days * samplingrate))
+    #fps_ = 60  # round(speed * 365 / (oneyear * dt_in_days * samplingrate))
 
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps_)
@@ -135,9 +137,11 @@ def animate(masses, positions, velocities, duration, speed, name):
         # calculate the distance of each particle to the origin
         distances = np.array([forces.magnitude(positions[i])
                               for i in range(n_particles)])
+        normed_distances = distances / np.max(distances)
 
         # calculate the KE of each particle
         kinetic_energies = np.empty((n_particles, len(times_in_secs)))
+        kinetic_energies[:, 0] = calculate_kinetic_energies(masses, velocities)
 
         cmap = plt.get_cmap('plasma')
         new_cmap = truncate_colormap(cmap, 0.3, 1.0)
@@ -155,12 +159,63 @@ def animate(masses, positions, velocities, duration, speed, name):
 
         initial_sizes = np.clip(masses / max(masses) * 300, 10, 300)
         initial_scale = max_distance_prev * 1.1
+        bound = initial_scale
+        sizes = initial_sizes
         last_time = 0
         dtm = np.array([-1])
         npositions = np.array([positions])
         nvelocities = np.array([velocities])
 
         simulator = Simulator.simulator(masses.tolist(), positions.flatten().tolist(), velocities.flatten().tolist(), dt, n_particles)
+
+        isometric.set_xlabel("x")
+        isometric.set_ylabel("y")
+        isometric.set_zlabel("z")
+        isometric.grid(False)
+        isometric.facecolor = 'black'
+        isometric.set_xticks([])
+        isometric.set_yticks([])
+        isometric.set_zticks([])
+        isometric.xaxis.pane.fill = False
+        isometric.yaxis.pane.fill = False
+        isometric.zaxis.pane.fill = False
+        isometric.xaxis.pane.set_edgecolor('k')
+        isometric.yaxis.pane.set_edgecolor('k')
+        isometric.zaxis.pane.set_edgecolor('k')
+        isometric.set_xlim(-bound, bound)
+        isometric.set_ylim(-bound, bound)
+        isometric.set_zlim(-bound, bound)
+        iso = isometric.scatter(positions[:, 0], positions[:, 1],
+                          positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)
+
+        xz_plane.set_xlabel("x")
+        xz_plane.set_ylabel("z")
+        xz_plane.set_xlim(-bound, bound)
+        xz_plane.set_ylim(-bound, bound)
+        xz_plane.grid(False)
+        xz_plane.facecolor = 'black'
+        xz_plane.set_xticks([])
+        xz_plane.set_yticks([])
+        xz = xz_plane.scatter(positions[:, 0], positions[:, 2],
+                         s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+
+        xy_plane.set_xlabel("x")
+        xy_plane.set_ylabel("y")
+        xy_plane.set_xlim(-bound, bound)
+        xy_plane.set_ylim(-bound, bound)
+        xy_plane.grid(False)
+        xy_plane.facecolor = 'black'
+        xy_plane.set_xticks([])
+        xy_plane.set_yticks([])
+        xy = xy_plane.scatter(positions[:, 0], positions[:, 1],
+                         s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+
+        kes = [ke_2d.plot(times_in_days, kinetic_energies[j], c=new_cmap(normed_distances[j])) for j in range(n_particles)]
+        ke_2d.set_xlim(times_in_days[0], times_in_days[-1])
+        ke_2d.set_xlabel("Time")
+        ke_2d.set_ylabel("Kinetic Energy")
+        ke_2d.set_xticks([])
+        ke_2d.set_yticks([])
 
         for i in tqdm(range(len(times_in_days))):
             time = times_in_secs[i]
@@ -180,63 +235,33 @@ def animate(masses, positions, velocities, duration, speed, name):
                 np.min(distances)), max_distance_prev])
             range_prev = max(range_prev, calculate_range(distances))
             bound = min(range_prev, max_distance_prev * 1.1)
+            sizes = initial_sizes * (initial_scale / bound) ** 2
             #bound *= 1.1  # add a little padding
 
-            isometric.clear()
-            isometric.set_xlabel("x")
-            isometric.set_ylabel("y")
-            isometric.set_zlabel("z")
             isometric.set_xlim(-bound, bound)
             isometric.set_ylim(-bound, bound)
             isometric.set_zlim(-bound, bound)
-            isometric.grid(False)
-            isometric.facecolor = 'black'
-            isometric.set_xticks([])
-            isometric.set_yticks([])
-            isometric.set_zticks([])
-            isometric.xaxis.pane.fill = False
-            isometric.yaxis.pane.fill = False
-            isometric.zaxis.pane.fill = False
-            isometric.xaxis.pane.set_edgecolor('k')
-            isometric.yaxis.pane.set_edgecolor('k')
-            isometric.zaxis.pane.set_edgecolor('k')
-            sizes = initial_sizes * (initial_scale / bound) ** 2
-            isometric.scatter(positions[:, 0], positions[:, 1],
-                              positions[:, 2], s=sizes, c=normed_distances, cmap=new_cmap)
+            iso._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+            iso.set_array(normed_distances)
+            iso._sizes3d = sizes
 
-            xz_plane.clear()
-            xz_plane.set_xlabel("x")
-            xz_plane.set_ylabel("z")
             xz_plane.set_xlim(-bound, bound)
             xz_plane.set_ylim(-bound, bound)
-            xz_plane.grid(False)
-            xz_plane.facecolor = 'black'
-            xz_plane.set_xticks([])
-            xz_plane.set_yticks([])
-            xz_plane.scatter(positions[:, 0], positions[:, 2],
-                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+            xz.set_offsets(np.hstack((positions[:, 0, np.newaxis], positions[:, 2, np.newaxis])))
+            xz.set_array(normed_distances)
+            xz._sizes = sizes
 
-            xy_plane.clear()
-            xy_plane.set_xlabel("x")
-            xy_plane.set_ylabel("y")
             xy_plane.set_xlim(-bound, bound)
             xy_plane.set_ylim(-bound, bound)
-            xy_plane.grid(False)
-            xy_plane.facecolor = 'black'
-            xy_plane.set_xticks([])
-            xy_plane.set_yticks([])
-            xy_plane.scatter(positions[:, 0], positions[:, 1],
-                             s=sizes, c=normed_distances, cmap=new_cmap, alpha=0.8)
+            xy.set_offsets(np.hstack((positions[:, 0, np.newaxis], positions[:, 1, np.newaxis])))
+            xy.set_array(normed_distances)
+            xy._sizes = sizes
 
-            ke_2d.clear()
-            for j in range(kinetic_energies.shape[0]):
-                ke_2d.plot(times_in_days[:i], kinetic_energies[j, :i],
-                           c=new_cmap(normed_distances[j]))
-                ke_2d.set_xlim(times_in_days[0], times_in_days[-1])
-                ke_2d.set_xlabel("Time")
-                ke_2d.set_ylabel("Kinetic Energy")
-                ke_2d.set_xticks([])
-                ke_2d.set_yticks([])
+            for j in range(n_particles):
+                #kes[j][0].set_xdata(times_in_days+time-times_in_days[-1])
+                kes[j][0].set_data(times_in_days[:i], kinetic_energies[j, :i])
+                kes[j][0].set_color(new_cmap(normed_distances[j]))
+            
             fig.suptitle(f'{name} at {times_in_days[i]/365:.2f} Years')
             fig.tight_layout()
             wri.grab_frame()
