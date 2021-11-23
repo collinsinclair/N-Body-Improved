@@ -14,7 +14,8 @@ try:
     from src import rungekutta, systems
 
     # TODO also need to check that ffmpeg is installed - how to do this from .py script?
-except ImportError:
+except ImportError as e:
+    print(e)
     print("""
     An error occurred while importing one of the required modules.
     Please install required modules with the following command:
@@ -65,7 +66,8 @@ def faketype_intro():
     # get current working directory
     cwd = os.getcwd()
     input(faketype("Each time you run a simulation, the program will store the resulting video in a 'videos' folder "
-                   "that was created in the same folder you ran this program in: {}. [return]".format(cwd),
+                   "that was created in the same folder you ran this program in: {}. [return]".format(
+                       cwd),
                    newline=False))
 
 
@@ -205,7 +207,7 @@ Enter a 1 or a 2: """)
             "Would you like to (1) use the default or (2) enter your own? ")
     if choice == "2":
         max_mass = m_sun * \
-                   float(input("Enter the maximum mass (in solar masses): "))
+            float(input("Enter the maximum mass (in solar masses): "))
     else:
         max_mass = 0
     return max_mass
