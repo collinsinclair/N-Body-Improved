@@ -161,10 +161,10 @@ def animate(masses, positions, velocities, duration, speed, name):
         initial_scale = max_distance_prev * 1.1
         bound = initial_scale
         sizes = initial_sizes
-        last_time = 0
-        dtm = np.array([-1])
-        npositions = np.array([positions])
-        nvelocities = np.array([velocities])
+        # last_time = 0
+        # dtm = np.array([-1])
+        # npositions = np.array([positions])
+        # nvelocities = np.array([velocities])
 
         simulator = Simulator.simulator(masses.tolist(), positions.flatten().tolist(), velocities.flatten().tolist(), dt, n_particles)
 
@@ -220,7 +220,7 @@ def animate(masses, positions, velocities, duration, speed, name):
         fig.tight_layout()
 
         for i in tqdm(range(len(times_in_days))):
-            time = times_in_secs[i]
+            # time = times_in_secs[i]
             
             simulator.stepForward()
             positions = np.array(simulator.getPositions()).reshape((n_particles, n_dimensions))
@@ -261,7 +261,7 @@ def animate(masses, positions, velocities, duration, speed, name):
 
             for j in range(n_particles):
                 #kes[j][0].set_xdata(times_in_days+time-times_in_days[-1])
-                kes[j][0].set_data(times_in_days[:i], kinetic_energies[j, :i])
+                kes[j][0].set_data(times_in_days[:i], kinetic_energies[j, :i])  # TODO this broke with the new drawing method
                 kes[j][0].set_color(new_cmap(normed_distances[j]))
             
             fig.suptitle(f'{name} at {times_in_days[i]/365:.2f} Years')
