@@ -217,6 +217,8 @@ def animate(masses, positions, velocities, duration, speed, name):
         ke_2d.set_xticks([])
         ke_2d.set_yticks([])
 
+        fig.tight_layout()
+
         for i in tqdm(range(len(times_in_days))):
             time = times_in_secs[i]
             
@@ -263,7 +265,6 @@ def animate(masses, positions, velocities, duration, speed, name):
                 kes[j][0].set_color(new_cmap(normed_distances[j]))
             
             fig.suptitle(f'{name} at {times_in_days[i]/365:.2f} Years')
-            fig.tight_layout()
             wri.grab_frame()
 
             # # if 10 seconds have passed, print a space fact
