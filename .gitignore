@@ -5,6 +5,12 @@ __pycache__/
 
 # C extensions
 *.so
+cpp/CMakeFiles/
+cpp/CMakeCache.txt
+cpp/cmake_install.cmake
+cpp/Makefile
+
+
 
 # Distribution / packaging
 .Python
