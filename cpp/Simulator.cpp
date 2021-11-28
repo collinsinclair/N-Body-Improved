@@ -1,6 +1,3 @@
-//#include <pybind11/pybind11.h>
-
-//namespace py = pybind11;
 #include <math.h>
 #include <iostream>
 #include <ctime>
@@ -12,6 +9,7 @@ using namespace std;
 
 namespace py = pybind11;
 
+// Add two n x 3 arrays together
 double *sumTensors(double *tensor1, double *tensor2, int n){
 	double *newtensor = new double[n*3];
 	for(int i = 0; i<n*3; i++){
@@ -20,6 +18,7 @@ double *sumTensors(double *tensor1, double *tensor2, int n){
 	return newtensor;
 }
 
+// Multiply every element of an n x 3 array by a scalar
 double *scalarMultTensor(double *tensor, double scalar, int n){
 	double *newtensor = new double[n*3];
 	for(int i = 0; i<n*3; i++){
@@ -28,6 +27,8 @@ double *scalarMultTensor(double *tensor, double scalar, int n){
 	return newtensor;
 }
 
+// Add an n x 3 array scaled by a scalar to another n x 3 array
+// This function is included to minimize copy operations
 double *sumScalarMultTensor(double *tensor, double *tensor2, double scalar, int n){
 	double *newtensor = new double[n*3];
 	for(int i = 0; i<n*3; i++){
@@ -36,6 +37,7 @@ double *sumScalarMultTensor(double *tensor, double *tensor2, double scalar, int 
 	return newtensor;
 }
 
+// Copy an n x 3 array to a new location
 double *copyArr(double *original, int n){
 	double *na = new double[n*3];
 	for(int i = 0; i<n*3; i++){
@@ -44,6 +46,11 @@ double *copyArr(double *original, int n){
 	return na;
 }
 
+// Timer class to simplify optimization testing
+// Create a new timer, t.  This will start the time.
+// Call t.time([task]) to print how long it has been since
+// the time started.  Optionally include a task to print
+// the task as well.  Call t.start() to reset the timer.
 class Timer{
 public:
 	double t;
@@ -61,6 +68,7 @@ public:
 	}
 };
 
+// Class to store data calculated in one simulation (broken into subdivisions)
 class SimStep{
 public:
 	int n;
@@ -73,6 +81,9 @@ public:
 		depth = 0;
 	}
 
+    // Delete the arrays containing position, velocity, and time data,
+    // but don't delete the positions, velocities and times.
+    // This is done to allow reuse of this data to reduce copy operations.
 	~SimStep(){
 		if(depth > 0){
 			delete[] parray;
@@ -82,6 +93,9 @@ public:
 		}
 	}
 
+    // Delete all position and velocity arrays stored in SimStep
+    // and delete the arrays containing these arrays.  Only use
+    // when you are sure that the data will not be used again.
 	void obliterate(){
 		if(depth > 0){
 			for(int i = 0; i<depth; i++){
@@ -160,6 +174,8 @@ public:
 		return SimStep(np, nv, nt, depth+other.depth, n);
 	}
 
+    // Calculate the positions and velocities time t into the SimStep
+    // and store the values in the pointers passed in
 	void update(double t, double *positions, double *velocities, int n){
 		for(int i = 0; i<depth - 1; i++){
 			if(tarray[i] <= t && tarray[i+1] >= t){
@@ -173,6 +189,9 @@ public:
 		}
 	}
 
+    // Perform a cumulative sum on positions, velocities, and times.
+    // This allows us to construct the SimStep by recording changes before
+    // converting it to absolutes.
 	SimStep cumSum(double *positions, double *velocities, double time){
 		double **np = new double*[depth+1];
 		double **nv = new double*[depth+1];
@@ -197,6 +216,7 @@ public:
 		return *this;
 	}
 
+    //Print all time steps stored in SimStep for debug
 	void printTimes(){
 		cout << "T: ";
 		for(int i = 0; i<depth; i++){
@@ -226,6 +246,8 @@ public:
 	}
 };
 
+// Calculate the array of acceleration vectors for the given system
+// using Newton's law of gravitation
 double *calculate_acceleration(double *masses, double *positions, int n){
 	double G = 6.67e-11;
     double *acc = new double[n*3];
@@ -252,6 +274,8 @@ double *calculate_acceleration(double *masses, double *positions, int n){
     return acc;
 }
 
+// Perform Runge--Kutta 4th order numerical approximation of 2nd order
+// positon -> velocity -> acceleration equations from Newton's 2nd law
 double **rungekutta(double *masses, double *positions, double *velocities, int n, double dt){
     double *kv0 = calculate_acceleration(masses, positions, n);
 
@@ -295,6 +319,7 @@ double **rungekutta(double *masses, double *positions, double *velocities, int n
     return pair;
 }
 
+// Calculate the maximum relative difference between two arrays of vectors
 double maxError(double *curr, double *prev, int n){
 	double merr = 0;
 	for(int i = 0; i<n; i++){
@@ -309,6 +334,9 @@ double maxError(double *curr, double *prev, int n){
 	return pow(merr, 0.5);
 }
 
+// Calculate the evolution of the system over a time step dt.
+// Continue calculating to better and better approximation until
+// MaxError function returns 1e-5.
 SimStep update_particles_recursive(double *masses, double *positions, double *velocities, int n, double dt, double *prev, int nmax, double time){
 	SimStep ret;
 	double **n1 = rungekutta(masses, positions, velocities, n, dt / 2.0);
@@ -349,6 +377,7 @@ SimStep update_particles_recursive(double *masses, double *positions, double *ve
 	}
 }
 
+// Calculate the evolution of the system over a time step dt.
 SimStep update_particles(double *masses, double *positions, double *velocities, int n, double dt){
     double **na = rungekutta(masses, positions, velocities, n, dt);
     SimStep ret = SimStep(positions, velocities, 0, n) + update_particles_recursive(masses, positions, velocities, n, dt, na[0], 30, 0);
@@ -358,6 +387,7 @@ SimStep update_particles(double *masses, double *positions, double *velocities, 
     return ret;
 }
 
+// Convert python list type to C array type
 double *createArray(py::list &array, int n){
 	double *arrayT = new double[n*3];
 	for(int i = 0; i<n*3; i++){
@@ -366,12 +396,18 @@ double *createArray(py::list &array, int n){
 	return arrayT;
 }
 
+// Convert C array type to python list type
 void convert(py::list &array, double *arrayT, int n){
 	for(int i = 0; i<n*3; i++){
 		array[i] = arrayT[i];
 	}
 }
 
+// Class exposed to python code that wraps the other functions
+// in this file for easy interfacing.  Instantiate a new Simulator
+// object with the desired start configuration and time step data.
+// call stepForward() to update the system internally by time step.
+// call getPositions() and getVelocities() to get the updated state.
 class simulator{
 public:
 	double *masses;
@@ -414,8 +450,6 @@ public:
         }
         double stime = time - last_time + dt * 16;
         data.update(stime, positionsT, velocitiesT, n);
-        //printState();
-        //data.printTimes();
         convert(positions, positionsT, n);
         convert(velocities, velocitiesT, n);
 	}
@@ -440,34 +474,7 @@ public:
 	}
 };
 
-/*int main(){
-	double *masses = new double[2];
-	masses[0] = 1.989e30;
-	masses[1] = 5.972e24;
-	double G = 6.67e-11;
-	double a = 1.496e11;
-	double v_circular = pow(G*masses[0]/a, 0.5);
-	double q = masses[1]/masses[0];
-	Tensor<Vector> positions(2);
-	positions[0] = Vector(-q*a, 0, 0);
-	positions[1] = Vector((1-q)*a, 0, 0);
-	Tensor<Vector> velocities(2);
-	velocities[0] = Vector(0, -q*v_circular, 0);
-	velocities[1] = Vector(0, (1-q)*v_circular, 0);
-	double dt = 5*24*60*60;
-	double *poss = new double[2*3];
-	convert(poss, positions);
-	double *vels = new double[2*3];
-	convert(vels, velocities);
-	simulator s(masses, poss, vels, dt, 2);
-	s.printState();
-	for(int i = 0; i<73; i++){
-		s.stepForward();
-		s.printState();
-	}
-	return 0;
-}*/
-
+// Code to expose Simulator class to python using pybind11
 PYBIND11_MODULE(Simulator, m) {
     m.doc() = "pybind11 simulator plugin"; // optional module docstring
     py::class_<simulator>(m, "simulator")
