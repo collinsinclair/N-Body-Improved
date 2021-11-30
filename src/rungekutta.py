@@ -195,12 +195,12 @@ def animate(masses, positions, velocities, duration, speed, name):
         # Loop over all times in duration
         for i in tqdm(range(len(times_in_days))):
             # Update system
-            simulator.stepForward()
+            simulator.step_forward()
 
             # Convert positions and velocities from C shape to python shape
-            positions = np.array(simulator.getPositions()).reshape(
+            positions = np.array(simulator.get_positions()).reshape(
                     (n_particles, n_dimensions))
-            velocities = np.array(simulator.getVelocities()).reshape(
+            velocities = np.array(simulator.get_velocities()).reshape(
                     (n_particles, n_dimensions))
 
             kinetic_energies[:, i] = calculate_kinetic_energies(masses,
