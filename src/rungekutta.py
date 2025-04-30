@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 
 # noinspection PyUnresolvedReferences
-from cpp import Simulator
+from build import Simulator
 
 
 def magnitude(vec):

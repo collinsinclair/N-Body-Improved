@@ -416,13 +416,9 @@ public:
 
 	void step_forward(){
 		time += time_step;
-		while(time > last_time){
-			data.obliterate();
-            data = update_particles(masses, copy_tensor(position_tensor, n), copy_tensor(velocity_tensor, n), n, time_step * 16);
-            last_time += time_step * 16;
-        }
-        double relative_time = time - last_time + time_step * 16;
-        data.update(relative_time, position_tensor, velocity_tensor, n);
+		data.obliterate();
+		data = update_particles(masses, copy_tensor(position_tensor, n), copy_tensor(velocity_tensor, n), n, time_step);
+        data.update(time_step, position_tensor, velocity_tensor, n);
         convert_to_list(positions, position_tensor, n);
         convert_to_list(velocities, velocity_tensor, n);
 	}
