@@ -400,6 +400,16 @@ def select_system():
 
 def main():
     make_videos_dir()
+    debug = True
+    if debug:
+        duration = 365 * 24 * 60 * 60 # 1 year
+        speed = 1
+        n = 30*100
+        mass_ratio = 1e-10
+        z_velocity = 1000
+        masses, positions, velocities = systems.planetesimal_disk(n, mass_ratio, z_velocity)
+        rungekutta.animate(masses, positions, velocities, duration, speed, "debug")
+        return 0
     fake_type_intro()
     cont = True
     while cont:

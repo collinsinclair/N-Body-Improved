@@ -8,9 +8,11 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+import torch
 
 # noinspection PyUnresolvedReferences
-from build import Simulator
+#from build import Simulator
+from src.kernels import Simulator
 
 
 def magnitude(vec):
@@ -127,10 +129,10 @@ def animate(masses, positions, velocities, duration, speed, name):
         sizes = initial_sizes
 
         # Create new Simulator instance
-        simulator = Simulator.simulator(masses.tolist(),
-                                        positions.flatten().tolist(),
-                                        velocities.flatten().tolist(),
-                                        dt, n_particles)
+        simulator = Simulator(torch.tensor(masses).to('cuda'),
+                                        torch.tensor(positions.flatten()).to('cuda'),
+                                        torch.tensor(velocities.flatten()).to('cuda'),
+                                        dt)
 
         # Set up 3D plot
         isometric.set_xlabel("x")
@@ -198,9 +200,9 @@ def animate(masses, positions, velocities, duration, speed, name):
             simulator.step_forward()
 
             # Convert positions and velocities from C shape to python shape
-            positions = np.array(simulator.get_positions()).reshape(
+            positions = np.array(simulator.get_positions().to('cpu')).reshape(
                     (n_particles, n_dimensions))
-            velocities = np.array(simulator.get_velocities()).reshape(
+            velocities = np.array(simulator.get_velocities().to('cpu')).reshape(
                     (n_particles, n_dimensions))
 
             kinetic_energies[:, i] = calculate_kinetic_energies(masses,
