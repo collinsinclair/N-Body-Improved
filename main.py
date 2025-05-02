@@ -404,7 +404,7 @@ def main():
     if debug:
         duration = 365 * 24 * 60 * 60 # 1 year
         speed = 1
-        n = 30*100
+        n = 30*5
         mass_ratio = 1e-10
         z_velocity = 1000
         masses, positions, velocities = systems.planetesimal_disk(n, mass_ratio, z_velocity)

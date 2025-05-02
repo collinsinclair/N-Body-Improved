@@ -181,7 +181,7 @@ def max_error(cur, prev, bs=256):
     max_error_kernel[( (numel+bs-1)//bs, )](
         cur.view(-1), prev.view(-1), err, numel, BLOCK_SIZE=bs
     )
-    return err.item()
+    return err
 
 # Recursive update
 
