@@ -10,6 +10,11 @@ import numpy as np
 from tqdm import tqdm
 import torch
 
+from pyqtgraph.Qt import QtWidgets
+import pyqtgraph.opengl as gl
+from PyQt5.QtGui import QImage
+import imageio
+
 # noinspection PyUnresolvedReferences
 #from build import Simulator
 from src.kernels import Simulator
@@ -66,7 +71,7 @@ def calculate_range(distances):
     return np.percentile(distances, 75) * 1.1
 
 
-def animate(masses, positions, velocities, duration, speed, name):
+def animate_old(masses, positions, velocities, duration, speed, name):
     """Animate the system provided and save the video"""
     # make sure the three input arrays have consistent shapes
     n_particles, n_dimensions = positions.shape
@@ -89,7 +94,7 @@ def animate(masses, positions, velocities, duration, speed, name):
 
     # Set up the figure
     wri = ani.FFMpegWriter(fps=fps)
-    fig = plt.figure(figsize=(30, 10))
+    fig = plt.Figure(figsize=(30, 10))
     isometric = fig.add_subplot(132, projection='3d')
     ke_2d = fig.add_subplot(396)
     xz_plane = fig.add_subplot(131)
@@ -198,7 +203,7 @@ def animate(masses, positions, velocities, duration, speed, name):
         for i in tqdm(range(len(times_in_days))):
             # Update system
             simulator.step_forward()
-
+            
             # Convert positions and velocities from C shape to python shape
             positions = np.array(simulator.get_positions().to('cpu')).reshape(
                     (n_particles, n_dimensions))
@@ -221,7 +226,7 @@ def animate(masses, positions, velocities, duration, speed, name):
             bound = max(bound, min(range_prev,
                                    max_distance_prev * 1.1))
             sizes = initial_sizes * (initial_scale / bound) ** 2
-
+            
             # Update bounds and particle locations
             isometric.set_xlim(-bound, bound)
             isometric.set_ylim(-bound, bound)
@@ -232,7 +237,7 @@ def animate(masses, positions, velocities, duration, speed, name):
                               positions[:, 2])
             iso.set_array(normed_distances)
             iso._sizes3d = sizes
-
+            
             xz_plane.set_xlim(-bound, bound)
             xz_plane.set_ylim(-bound, bound)
 
@@ -256,6 +261,7 @@ def animate(masses, positions, velocities, duration, speed, name):
                 kes[j][0].set_color(new_color_map(normed_distances[j]))
 
             fig.suptitle(f'{name} at {times_in_days[i] / 365:.2f} Years')
+            
             wri.grab_frame()
 
         # Save video
@@ -269,3 +275,102 @@ def animate(masses, positions, velocities, duration, speed, name):
             os.system(f'open "{filename}"')
         except OSError:
             fake_type("Could not open video in default video player.")
+
+
+def qimage_to_numpy(qimage: QImage):
+    qimage = qimage.convertToFormat(QImage.Format.Format_RGBA8888)
+    width = qimage.width()
+    height = qimage.height()
+    ptr = qimage.bits()
+    ptr.setsize(qimage.byteCount())
+    arr = np.array(ptr).reshape(height, width, 4)
+    return arr
+
+
+def animate(masses, positions, velocities, duration, speed, name):
+    # Validate inputs
+    n_particles, n_dimensions = positions.shape
+    assert velocities.shape == positions.shape
+    assert len(masses) == n_particles
+
+    # Simulation parameters
+    fps = 60
+    dt = 86400 * speed * 365 / (fps * 15)
+
+    times_in_secs = np.arange(0, duration, dt)
+    times_in_days = times_in_secs / 86400
+
+    # Initialize CUDA simulator
+    simulator = Simulator(
+        torch.tensor(masses).to('cuda'),
+        torch.tensor(positions.flatten()).to('cuda'),
+        torch.tensor(velocities.flatten()).to('cuda'),
+        dt
+    )
+
+    # Prepare video writer
+    ts = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    out_dir = './videos'
+    os.makedirs(out_dir, exist_ok=True)
+    video_path = os.path.join(out_dir, f"{name}_{ts}.mp4")
+    writer = imageio.get_writer(video_path, fps=fps)
+
+    unit = max(positions.flatten())
+
+    # Qt application and 3D view
+    app = QtWidgets.QApplication([])
+    view = gl.GLViewWidget()
+    view.setWindowTitle(name)
+    view.setCameraPosition(distance=2.2*unit)
+    view.setFixedSize(2560, 1920)
+    #view.show()
+
+    # Initial scatter plot
+    sizes = np.clip(masses / np.max(masses) * 300, 10, 300) * unit / 300 / 5
+
+    color_map = plt.get_cmap('plasma')
+    new_color_map = truncate_color_map(color_map, 0.3, 1.0)
+
+    distances = np.array([magnitude(positions[i])
+                              for i in range(n_particles)])
+    normed_distances = distances / np.max(distances)
+
+    color = new_color_map(normed_distances, 1)
+
+    scatter = gl.GLScatterPlotItem(
+        pos=positions,
+        size=sizes,
+        color=color, #(191./255, 67./255, 185./255, 1),
+        pxMode=False
+    )
+    view.addItem(scatter)
+
+    # Perform simulation loop as fast as possible
+    for frame in tqdm(range(len(times_in_days))):
+        # Advance simulation
+        simulator.step_forward()
+        # Retrieve and update positions
+        cpu_pos = (
+            simulator.get_positions()
+            .to('cpu')
+            .numpy()
+            .reshape((n_particles, n_dimensions))
+        )
+        distances = np.array([magnitude(cpu_pos[i])
+                              for i in range(n_particles)])
+        normed_distances = distances / np.max(distances)
+
+        color = new_color_map(normed_distances, 1)
+        scatter.setData(pos=cpu_pos, size=sizes, color=color)
+
+        # Process Qt events to update view
+        app.processEvents()
+
+        # Render and write frame
+        img = qimage_to_numpy(view.grabFramebuffer())
+        writer.append_data(img)
+
+    # Finish up
+    writer.close()
+    print(f"Video saved to {video_path}")
+    app.quit()
